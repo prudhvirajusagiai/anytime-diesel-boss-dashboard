@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anytime Diesel | Management Dashboard</title>
+<style>
+:root{--nav:#0d2b45;--blue:#1d5f91;--yellow:#f5b31b;--bg:#f3f6f9;--card:#fff;--text:#172233;--muted:#6b7788;--line:#e3e8ee;--green:#16845b;--red:#c63b3b;--orange:#b87500}
+*{box-sizing:border-box}body{margin:0;font:13px "Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--nav);color:#fff;padding:18px 25px;display:flex;justify-content:space-between;align-items:center}.brand{font-size:21px;font-weight:900}.brand span{color:var(--yellow)}header small{color:#c5d4e1}
+main{padding:22px;max-width:1500px;margin:auto}.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.toolbar h1{margin:0;font-size:25px}.actions{display:flex;gap:8px}.btn{padding:9px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 3px 12px #17304a08}.label{font-size:10px;color:var(--muted);font-weight:800}.num{font-size:24px;font-weight:900;margin-top:7px}.sub{font-size:10px;color:var(--green);margin-top:5px}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:15px;margin-top:15px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:15px}.card h2{font-size:15px;margin:0 0 13px}
+.progress{height:9px;background:#edf1f5;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:var(--yellow)}
+.listrow{padding:10px 0;border-bottom:1px solid var(--line)}.listrow:last-child{border:0}.muted{color:var(--muted)}
+.barbox{height:230px;display:flex;align-items:flex-end;gap:13px;padding:10px}.barcol{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.bar{width:65%;max-width:50px;background:var(--blue);border-radius:5px 5px 0 0}.barcol small{font-size:9px;color:var(--muted)}.barcol b{font-size:9px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}th{font-size:10px;color:var(--muted);text-transform:uppercase}.pill{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:800;display:inline-block}.green{background:#e5f6ee;color:#16734f}.orange{background:#fff1d8;color:#9a6400}.red{background:#fde8e8;color:#b32d2d}.blue{background:#e8f0f8;color:#315f86}
+.notice{padding:11px;background:#fff7df;border-radius:8px;font-size:11px;color:#705400;margin-bottom:15px}
+.setup{display:none}.setup.show{display:block}.setup textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:8px;padding:10px;font:12px monospace}.empty{text-align:center;padding:30px;color:var(--muted)}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){.cards{grid-template-columns:1fr}header{padding:15px;gap:10px;flex-direction:column;align-items:flex-start}.toolbar{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<header><div><div class="brand">ANYTIME <span>DIESEL</span></div><small>Management Sales Dashboard</small></div><div><small id="updated">Demo data</small></div></header>
+<main>
+<div class="notice">This is a read-only management dashboard. It intentionally does not display customer phone numbers, personal notes or other detailed CRM information.</div>
+<div class="toolbar"><div><h1>Business Overview</h1><div class="muted" id="date"></div></div><div class="actions"><button class="btn" onclick="window.print()">Print / PDF</button><button class="btn" onclick="showSetup()">Data Setup</button></div></div>
+
+<div class="cards">
+<div class="card"><div class="label">MONTHLY TARGET</div><div class="num" id="target">₹0</div><div class="sub">Current period</div></div>
+<div class="card"><div class="label">ACHIEVED</div><div class="num" id="achieved">₹0</div><div class="sub" id="achievementPct">0%</div></div>
+<div class="card"><div class="label">OPEN PIPELINE</div><div class="num" id="pipeline">₹0</div><div class="sub">Open opportunities</div></div>
+<div class="card"><div class="label">PROSPECTS</div><div class="num" id="prospects">0</div><div class="sub">Total prospects</div></div>
+<div class="card"><div class="label">FOLLOW-UPS DUE</div><div class="num" id="followups">0</div><div class="sub">Needs attention</div></div>
+<div class="card"><div class="label">OUTSTANDING</div><div class="num" id="outstanding">₹0</div><div class="sub">Pending collection</div></div>
+</div>
+
+<div class="grid2">
+<div class="card"><h2>Sales Performance</h2><div class="barbox" id="bars"></div></div>
+<div class="card"><h2>Pipeline by Stage</h2><div id="stages"></div></div>
+</div>
+
+<div class="grid3">
+<div class="card"><h2>Sector-wise Opportunities</h2><div id="sectors"></div></div>
+<div class="card"><h2>Product / Solution Mix</h2><div id="products"></div></div>
+<div class="card"><h2>Management Priorities</h2><div id="priorities"></div></div>
+</div>
+
+<div class="card" style="margin-top:15px"><h2>Top Opportunities</h2><div id="topDeals"></div></div>
+
+<div class="setup card" id="setup">
+<h2>Google Sheets / Data Source Setup</h2>
+<p class="muted">For the first hosted version, the page can consume a published CSV from Google Sheets. Create a Google Sheet containing only management-safe fields, publish the relevant sheet/tab to the web as CSV, then paste its CSV URL below.</p>
+<p><b>Recommended columns:</b> company, sector, value, stage, probability, owner, month</p>
+<textarea id="csvUrl" placeholder="Paste your published Google Sheets CSV URL here"></textarea>
+<div style="margin-top:10px"><button class="btn primary" onclick="loadCSV()">Load CSV</button> <button class="btn" onclick="hideSetup()">Close</button></div>
+<p class="muted">For a multi-tab Google Sheets sync, we can later replace this with Google Apps Script. Do not put private contact details in a publicly published CSV.</p>
+</div>
+</main>
+<script>
+const demo={
+target:5000000,achieved:2850000,
+prospects:3,followups:2,outstanding:275000,
+stages:{Lead:0,Qualified:1,Requirement:0,Proposal:1,Negotiation:1,Won:0,Lost:0},
+sectors:{Construction:450000,'Data Center':800000,Healthcare:300000},
+products:{'Diesel Cube':750000,'Cube + RFID + SaaS':800000},
+deals:[['Hyderabad Data Systems','Data Center',800000,'Negotiation',80],['ABC Infra Projects','Construction',450000,'Proposal',70],['Prime Hospitals','Healthcare',300000,'Qualified',45]],
+monthly:{Mar:600000,Apr:900000,May:1200000,Jun:1600000,Jul:2200000,Aug:2850000}
+};
+let data=JSON.parse(localStorage.getItem('bossDashboardData')||'null')||demo;
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
+function badge(v){let x=String(v).toLowerCase();let c=x==='won'?'green':(x==='negotiation'||x==='proposal'||x==='qualified')?'orange':'blue';return `<span class="pill ${c}">${v}</span>`}
+function render(){
+document.getElementById('date').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('target').textContent=money(data.target);document.getElementById('achieved').textContent=money(data.achieved);document.getElementById('pipeline').textContent=money(Object.entries(data.stages||{}).filter(([s])=>!['Won','Lost'].includes(s)).reduce((a,[s])=>a+(data.stageValues?.[s]||0),0)||data.deals.reduce((a,x)=>a+x[2],0));document.getElementById('prospects').textContent=data.prospects;document.getElementById('followups').textContent=data.followups;document.getElementById('outstanding').textContent=money(data.outstanding);document.getElementById('achievementPct').textContent=(data.target?data.achieved/data.target*100:0).toFixed(1)+'% of target';
+let months=Object.entries(data.monthly||{}),max=Math.max(...months.map(x=>x[1]),1);document.getElementById('bars').innerHTML=months.map(([m,v])=>`<div class="barcol"><b>${money(v/1000)}K</b><div class="bar" style="height:${Math.max(4,v/max*165)}px"></div><small>${m}</small></div>`).join('');
+let total=Object.values(data.stages||{}).reduce((a,b)=>a+b,0);document.getElementById('stages').innerHTML=Object.entries(data.stages||{}).map(([s,n])=>`<div class="listrow"><div style="display:flex;justify-content:space-between"><b>${s}</b><span>${n}</span></div><div class="progress" style="margin-top:6px"><span style="width:${total?Math.max(2,n/total*100):0}%"></span></div></div>`).join('');
+renderRank('sectors',data.sectors||{},'money');renderRank('products',data.products||{},'money');
+document.getElementById('priorities').innerHTML=`<div class="listrow"><b>${data.followups}</b> follow-ups require attention</div><div class="listrow"><b>${money(data.outstanding)}</b> outstanding payments</div><div class="listrow"><b>${(data.target?data.achieved/data.target*100:0).toFixed(1)}%</b> target achievement</div>`;
+document.getElementById('topDeals').innerHTML=data.deals?.length?`<table><tr><th>Opportunity</th><th>Sector</th><th>Value</th><th>Stage</th><th>Probability</th></tr>${data.deals.sort((a,b)=>b[2]-a[2]).slice(0,10).map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${money(x[2])}</td><td>${badge(x[3])}</td><td>${x[4]}%</td></tr>`).join('')}</table>`:'<div class="empty">No opportunities available.</div>';
+}
+function renderRank(id,obj,mode){let a=Object.entries(obj).sort((x,y)=>y[1]-x[1]),max=Math.max(...a.map(x=>x[1]),1);document.getElementById(id).innerHTML=a.map(([k,v])=>`<div class="listrow"><div style="display:flex;justify-content:space-between"><b>${k}</b><span>${mode==='money'?money(v):v}</span></div><div class="progress" style="margin-top:6px"><span style="width:${Math.min(100,v/max*100)}%"></span></div></div>`).join('')||'<div class="empty">No data.</div>'}
+function showSetup(){document.getElementById('setup').classList.add('show');document.getElementById('csvUrl').value=localStorage.getItem('bossCsvUrl')||''}
+function hideSetup(){document.getElementById('setup').classList.remove('show')}
+async function loadCSV(){let url=document.getElementById('csvUrl').value.trim();if(!url){alert('Paste a published CSV URL first.');return}localStorage.setItem('bossCsvUrl',url);try{let text=await (await fetch(url)).text();let rows=parseCSV(text);if(rows.length<2)throw Error('No data');let headers=rows[0].map(x=>x.trim().toLowerCase());let records=rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]||''])));let d={...demo};d.prospects=records.length;d.deals=records.map(r=>[r.company||'Opportunity',r.sector||'Other',Number(r.value||0),r.stage||'Lead',Number(r.probability||0)]);d.stages={};d.sectors={};records.forEach(r=>{d.stages[r.stage||'Lead']=(d.stages[r.stage||'Lead']||0)+1;d.sectors[r.sector||'Other']=(d.sectors[r.sector||'Other']||0)+Number(r.value||0)});data=d;localStorage.setItem('bossDashboardData',JSON.stringify(data));document.getElementById('updated').textContent='Synced from Google Sheets';render();alert('Dashboard data loaded.');}catch(e){alert('Could not load CSV. Check that the Google Sheet/tab is published to the web as CSV and that the URL is accessible.')} }
+function parseCSV(s){let rows=[],row=[],cell='',q=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'){if(q&&s[i+1]==='"'){cell+='"';i++}else q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\\n'||c==='\\r')&&!q){if(c==='\\r'&&s[i+1]==='\\n')i++;row.push(cell);cell='';if(row.some(x=>x!==''))rows.push(row);row=[]}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}return rows}
+render();
+</script>
+</body></html>
