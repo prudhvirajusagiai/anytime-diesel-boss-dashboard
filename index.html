@@ -1,89 +1,3733 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Anytime Diesel | Management Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Anytime Diesel | Sales Management Dashboard</title>
+
 <style>
-:root{--nav:#0d2b45;--blue:#1d5f91;--yellow:#f5b31b;--bg:#f3f6f9;--card:#fff;--text:#172233;--muted:#6b7788;--line:#e3e8ee;--green:#16845b;--red:#c63b3b;--orange:#b87500}
-*{box-sizing:border-box}body{margin:0;font:13px "Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
-header{background:var(--nav);color:#fff;padding:18px 25px;display:flex;justify-content:space-between;align-items:center}.brand{font-size:21px;font-weight:900}.brand span{color:var(--yellow)}header small{color:#c5d4e1}
-main{padding:22px;max-width:1500px;margin:auto}.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.toolbar h1{margin:0;font-size:25px}.actions{display:flex;gap:8px}.btn{padding:9px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 3px 12px #17304a08}.label{font-size:10px;color:var(--muted);font-weight:800}.num{font-size:24px;font-weight:900;margin-top:7px}.sub{font-size:10px;color:var(--green);margin-top:5px}
-.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:15px;margin-top:15px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:15px}.card h2{font-size:15px;margin:0 0 13px}
-.progress{height:9px;background:#edf1f5;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:var(--yellow)}
-.listrow{padding:10px 0;border-bottom:1px solid var(--line)}.listrow:last-child{border:0}.muted{color:var(--muted)}
-.barbox{height:230px;display:flex;align-items:flex-end;gap:13px;padding:10px}.barcol{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.bar{width:65%;max-width:50px;background:var(--blue);border-radius:5px 5px 0 0}.barcol small{font-size:9px;color:var(--muted)}.barcol b{font-size:9px}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}th{font-size:10px;color:var(--muted);text-transform:uppercase}.pill{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:800;display:inline-block}.green{background:#e5f6ee;color:#16734f}.orange{background:#fff1d8;color:#9a6400}.red{background:#fde8e8;color:#b32d2d}.blue{background:#e8f0f8;color:#315f86}
-.notice{padding:11px;background:#fff7df;border-radius:8px;font-size:11px;color:#705400;margin-bottom:15px}
-.setup{display:none}.setup.show{display:block}.setup textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:8px;padding:10px;font:12px monospace}.empty{text-align:center;padding:30px;color:var(--muted)}
-@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){.cards{grid-template-columns:1fr}header{padding:15px;gap:10px;flex-direction:column;align-items:flex-start}.toolbar{flex-direction:column;align-items:flex-start}}
+:root{
+  --navy:#071a2b;
+  --navy2:#0d2942;
+  --blue:#1769aa;
+  --blue2:#2584c7;
+  --yellow:#f5b700;
+  --green:#169c63;
+  --red:#dc3545;
+  --orange:#f08c00;
+  --purple:#7950f2;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#162333;
+  --muted:#6b7785;
+  --border:#e1e7ee;
+  --shadow:0 6px 22px rgba(15,42,67,.08);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+  width:245px;
+  background:linear-gradient(180deg,var(--navy),#061321);
+  color:white;
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  z-index:50;
+  padding:20px 14px;
+  overflow-y:auto;
+}
+
+.logo{
+  padding:8px 12px 24px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  margin-bottom:18px;
+}
+
+.logo-title{
+  font-size:21px;
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.logo-sub{
+  font-size:11px;
+  opacity:.65;
+  margin-top:5px;
+  letter-spacing:1px;
+}
+
+.nav-title{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  opacity:.45;
+  padding:12px;
+}
+
+.nav-btn{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#dce8f2;
+  text-align:left;
+  padding:11px 13px;
+  border-radius:8px;
+  margin:2px 0;
+  font-size:13px;
+}
+
+.nav-btn:hover,
+.nav-btn.active{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.nav-icon{
+  display:inline-block;
+  width:25px;
+}
+
+.sidebar-footer{
+  margin-top:25px;
+  padding:14px 12px;
+  border-top:1px solid rgba(255,255,255,.1);
+  font-size:11px;
+  color:#9fb0c0;
+}
+
+/* MAIN */
+
+.main{
+  margin-left:245px;
+  width:calc(100% - 245px);
+  min-width:0;
+}
+
+.topbar{
+  height:70px;
+  background:white;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 28px;
+  position:sticky;
+  top:0;
+  z-index:40;
+}
+
+.page-title{
+  font-size:19px;
+  font-weight:750;
+}
+
+.page-subtitle{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.btn{
+  border:1px solid var(--border);
+  background:white;
+  color:var(--text);
+  border-radius:7px;
+  padding:9px 13px;
+  font-size:12px;
+}
+
+.btn:hover{
+  background:#f5f8fb;
+}
+
+.btn-primary{
+  background:var(--blue);
+  color:white;
+  border-color:var(--blue);
+}
+
+.btn-primary:hover{
+  background:#12588e;
+}
+
+.btn-success{
+  background:var(--green);
+  color:white;
+  border-color:var(--green);
+}
+
+.content{
+  padding:25px 28px 45px;
+}
+
+/* SECTIONS */
+
+.section{
+  display:none;
+}
+
+.section.active{
+  display:block;
+}
+
+/* CARDS */
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+
+.kpi{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  min-width:0;
+}
+
+.kpi-label{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:650;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.kpi-value{
+  font-size:23px;
+  font-weight:800;
+  margin-top:9px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.kpi-note{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+.kpi.blue{
+  border-top:3px solid var(--blue);
+}
+
+.kpi.yellow{
+  border-top:3px solid var(--yellow);
+}
+
+.kpi.green{
+  border-top:3px solid var(--green);
+}
+
+.kpi.red{
+  border-top:3px solid var(--red);
+}
+
+.kpi.purple{
+  border-top:3px solid var(--purple);
+}
+
+.kpi.orange{
+  border-top:3px solid var(--orange);
+}
+
+/* PANELS */
+
+.panel{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:11px;
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+  overflow:hidden;
+}
+
+.panel-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 18px;
+  border-bottom:1px solid var(--border);
+}
+
+.panel-title{
+  font-size:14px;
+  font-weight:750;
+}
+
+.panel-subtitle{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.panel-body{
+  padding:18px;
+}
+
+/* GRIDS */
+
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+/* CHART */
+
+.chart{
+  min-height:245px;
+}
+
+.bar-chart{
+  display:flex;
+  align-items:flex-end;
+  height:190px;
+  gap:12px;
+  padding:10px 5px 0;
+}
+
+.bar-col{
+  flex:1;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  min-width:25px;
+}
+
+.bar-value{
+  font-size:9px;
+  text-align:center;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+
+.bar{
+  background:linear-gradient(180deg,var(--blue2),var(--blue));
+  border-radius:5px 5px 0 0;
+  min-height:4px;
+}
+
+.bar-label{
+  text-align:center;
+  font-size:9px;
+  color:var(--muted);
+  margin-top:7px;
+  white-space:nowrap;
+}
+
+/* PIPELINE */
+
+.pipeline-row{
+  margin-bottom:14px;
+}
+
+.pipeline-head{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  margin-bottom:5px;
+}
+
+.pipeline-track{
+  height:9px;
+  background:#edf1f5;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.pipeline-fill{
+  height:100%;
+  background:var(--blue);
+  border-radius:20px;
+}
+
+/* TABLE */
+
+.table-wrap{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+}
+
+th{
+  text-align:left;
+  color:#687586;
+  background:#f7f9fb;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  padding:11px 12px;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+
+td{
+  padding:11px 12px;
+  border-bottom:1px solid #edf0f3;
+  vertical-align:middle;
+}
+
+tr:hover td{
+  background:#fafcff;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 8px;
+  border-radius:20px;
+  font-size:9px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.badge-blue{
+  background:#e7f2fb;
+  color:#1769aa;
+}
+
+.badge-green{
+  background:#e4f6ee;
+  color:#168957;
+}
+
+.badge-yellow{
+  background:#fff5d8;
+  color:#9a6d00;
+}
+
+.badge-red{
+  background:#fde8eb;
+  color:#b42333;
+}
+
+.badge-purple{
+  background:#eee9ff;
+  color:#6841d9;
+}
+
+.badge-gray{
+  background:#edf0f3;
+  color:#65717e;
+}
+
+/* SEARCH / FILTER */
+
+.toolbar{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
+.input,
+.select{
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:9px 11px;
+  background:white;
+  min-width:150px;
+  font-size:12px;
+}
+
+.input:focus,
+.select:focus{
+  outline:none;
+  border-color:var(--blue);
+}
+
+/* STATUS */
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.status-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#bbb;
+}
+
+.status-dot.online{
+  background:var(--green);
+}
+
+.status-dot.error{
+  background:var(--red);
+}
+
+.status-dot.loading{
+  background:var(--orange);
+}
+
+/* REMINDERS */
+
+.reminder{
+  display:flex;
+  gap:11px;
+  padding:11px 0;
+  border-bottom:1px solid #edf0f3;
+}
+
+.reminder:last-child{
+  border-bottom:0;
+}
+
+.reminder-icon{
+  width:32px;
+  height:32px;
+  border-radius:7px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#eef5fb;
+}
+
+.reminder-title{
+  font-size:11px;
+  font-weight:700;
+}
+
+.reminder-text{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+/* TARGET */
+
+.target-box{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:15px;
+}
+
+.target-number{
+  font-size:22px;
+  font-weight:800;
+}
+
+.progress{
+  height:10px;
+  background:#edf1f5;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progress-fill{
+  height:100%;
+  background:var(--green);
+}
+
+/* DATA SOURCE */
+
+.source-box{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:15px;
+}
+
+.source-url{
+  width:100%;
+  min-height:80px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:10px;
+  resize:vertical;
+  font-size:11px;
+  font-family:Consolas,monospace;
+}
+
+/* EMPTY */
+
+.empty{
+  text-align:center;
+  padding:35px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* MODAL */
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(4,16,28,.65);
+  z-index:100;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal-overlay.show{
+  display:flex;
+}
+
+.modal{
+  width:min(760px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:white;
+  border-radius:12px;
+  box-shadow:0 25px 70px rgba(0,0,0,.25);
+}
+
+.modal-header{
+  padding:17px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.modal-body{
+  padding:20px;
+}
+
+.close{
+  border:0;
+  background:transparent;
+  font-size:22px;
+}
+
+/* MOBILE */
+
+.mobile-menu{
+  display:none;
+  border:0;
+  background:white;
+  font-size:22px;
+}
+
+@media(max-width:1200px){
+  .kpi-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
+
+@media(max-width:900px){
+  .sidebar{
+    transform:translateX(-100%);
+    transition:.25s;
+  }
+
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  .main{
+    margin-left:0;
+    width:100%;
+  }
+
+  .mobile-menu{
+    display:block;
+  }
+
+  .grid-2,
+  .grid-3{
+    grid-template-columns:1fr;
+  }
+
+  .kpi-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .topbar{
+    padding:0 15px;
+  }
+
+  .content{
+    padding:18px 14px;
+  }
+
+  .page-subtitle{
+    display:none;
+  }
+}
+
+@media(max-width:550px){
+  .kpi-grid{
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+  }
+
+  .kpi{
+    padding:12px;
+  }
+
+  .kpi-value{
+    font-size:18px;
+  }
+
+  .top-actions .btn-text{
+    display:none;
+  }
+
+  .input,
+  .select{
+    width:100%;
+  }
+}
 </style>
 </head>
+
 <body>
-<header><div><div class="brand">ANYTIME <span>DIESEL</span></div><small>Management Sales Dashboard</small></div><div><small id="updated">Demo data</small></div></header>
-<main>
-<div class="notice">This is a read-only management dashboard. It intentionally does not display customer phone numbers, personal notes or other detailed CRM information.</div>
-<div class="toolbar"><div><h1>Business Overview</h1><div class="muted" id="date"></div></div><div class="actions"><button class="btn" onclick="window.print()">Print / PDF</button><button class="btn" onclick="showSetup()">Data Setup</button></div></div>
 
-<div class="cards">
-<div class="card"><div class="label">MONTHLY TARGET</div><div class="num" id="target">₹0</div><div class="sub">Current period</div></div>
-<div class="card"><div class="label">ACHIEVED</div><div class="num" id="achieved">₹0</div><div class="sub" id="achievementPct">0%</div></div>
-<div class="card"><div class="label">OPEN PIPELINE</div><div class="num" id="pipeline">₹0</div><div class="sub">Open opportunities</div></div>
-<div class="card"><div class="label">PROSPECTS</div><div class="num" id="prospects">0</div><div class="sub">Total prospects</div></div>
-<div class="card"><div class="label">FOLLOW-UPS DUE</div><div class="num" id="followups">0</div><div class="sub">Needs attention</div></div>
-<div class="card"><div class="label">OUTSTANDING</div><div class="num" id="outstanding">₹0</div><div class="sub">Pending collection</div></div>
-</div>
+<div class="app">
 
-<div class="grid2">
-<div class="card"><h2>Sales Performance</h2><div class="barbox" id="bars"></div></div>
-<div class="card"><h2>Pipeline by Stage</h2><div id="stages"></div></div>
-</div>
+<!-- SIDEBAR -->
 
-<div class="grid3">
-<div class="card"><h2>Sector-wise Opportunities</h2><div id="sectors"></div></div>
-<div class="card"><h2>Product / Solution Mix</h2><div id="products"></div></div>
-<div class="card"><h2>Management Priorities</h2><div id="priorities"></div></div>
-</div>
+<aside class="sidebar" id="sidebar">
 
-<div class="card" style="margin-top:15px"><h2>Top Opportunities</h2><div id="topDeals"></div></div>
+  <div class="logo">
+    <div class="logo-title">ANYTIME DIESEL</div>
+    <div class="logo-sub">SALES MANAGEMENT SYSTEM</div>
+  </div>
 
-<div class="setup card" id="setup">
-<h2>Google Sheets / Data Source Setup</h2>
-<p class="muted">For the first hosted version, the page can consume a published CSV from Google Sheets. Create a Google Sheet containing only management-safe fields, publish the relevant sheet/tab to the web as CSV, then paste its CSV URL below.</p>
-<p><b>Recommended columns:</b> company, sector, value, stage, probability, owner, month</p>
-<textarea id="csvUrl" placeholder="Paste your published Google Sheets CSV URL here"></textarea>
-<div style="margin-top:10px"><button class="btn primary" onclick="loadCSV()">Load / Refresh Data</button> <button class="btn" onclick="hideSetup()">Close</button></div>
-<p class="muted">For a multi-tab Google Sheets sync, we can later replace this with Google Apps Script. Do not put private contact details in a publicly published CSV.</p>
+  <div class="nav-title">Management</div>
+
+  <button class="nav-btn active" data-section="overview">
+    <span class="nav-icon">▦</span> Executive Overview
+  </button>
+
+  <button class="nav-btn" data-section="pipeline">
+    <span class="nav-icon">◈</span> Sales Pipeline
+  </button>
+
+  <button class="nav-btn" data-section="prospects">
+    <span class="nav-icon">◎</span> Prospects
+  </button>
+
+  <button class="nav-btn" data-section="followups">
+    <span class="nav-icon">☎</span> Follow-ups
+  </button>
+
+  <button class="nav-btn" data-section="schedule">
+    <span class="nav-icon">□</span> Schedule
+  </button>
+
+  <button class="nav-btn" data-section="clients">
+    <span class="nav-icon">♙</span> Existing Clients
+  </button>
+
+  <button class="nav-btn" data-section="payments">
+    <span class="nav-icon">₹</span> Payment Follow-ups
+  </button>
+
+  <button class="nav-btn" data-section="products">
+    <span class="nav-icon">▤</span> Products
+  </button>
+
+  <div class="nav-title">Performance</div>
+
+  <button class="nav-btn" data-section="targets">
+    <span class="nav-icon">🎯</span> Targets
+  </button>
+
+  <button class="nav-btn" data-section="achievements">
+    <span class="nav-icon">★</span> Achievements
+  </button>
+
+  <button class="nav-btn" data-section="data">
+    <span class="nav-icon">↻</span> Data Source
+  </button>
+
+  <div class="sidebar-footer">
+    <div>Sales Dashboard V2</div>
+    <div style="margin-top:5px;">Anytime Diesel</div>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+
+<main class="main">
+
+<header class="topbar">
+
+  <div style="display:flex;align-items:center;gap:12px;">
+
+    <button class="mobile-menu" id="mobileMenu">☰</button>
+
+    <div>
+      <div class="page-title" id="pageTitle">
+        Executive Overview
+      </div>
+
+      <div class="page-subtitle">
+        Sales performance, pipeline and business development management
+      </div>
+    </div>
+
+  </div>
+
+  <div class="top-actions">
+
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Not synced</span>
+    </div>
+
+    <button class="btn btn-primary" id="refreshBtn">
+      ↻ <span class="btn-text">Refresh</span>
+    </button>
+
+  </div>
+
+</header>
+
+<div class="content">
+
+<!-- ========================================================= -->
+<!-- OVERVIEW -->
+<!-- ========================================================= -->
+
+<section class="section active" id="section-overview">
+
+  <div class="kpi-grid">
+
+    <div class="kpi blue">
+      <div class="kpi-label">Pipeline Value</div>
+      <div class="kpi-value" id="kpiPipeline">₹0</div>
+      <div class="kpi-note">Total active opportunities</div>
+    </div>
+
+    <div class="kpi yellow">
+      <div class="kpi-label">Weighted Pipeline</div>
+      <div class="kpi-value" id="kpiWeighted">₹0</div>
+      <div class="kpi-note">Probability adjusted</div>
+    </div>
+
+    <div class="kpi green">
+      <div class="kpi-label">Opportunities</div>
+      <div class="kpi-value" id="kpiOpps">0</div>
+      <div class="kpi-note">Active sales opportunities</div>
+    </div>
+
+    <div class="kpi purple">
+      <div class="kpi-label">Win Rate</div>
+      <div class="kpi-value" id="kpiWinRate">0%</div>
+      <div class="kpi-note">Based on current stages</div>
+    </div>
+
+    <div class="kpi orange">
+      <div class="kpi-label">High Priority</div>
+      <div class="kpi-value" id="kpiHigh">0</div>
+      <div class="kpi-note">Probability ≥ 70%</div>
+    </div>
+
+    <div class="kpi red">
+      <div class="kpi-label">Owners</div>
+      <div class="kpi-value" id="kpiOwners">0</div>
+      <div class="kpi-note">Sales owners</div>
+    </div>
+
+  </div>
+
+  <div class="grid-2">
+
+    <div class="panel">
+
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Pipeline by Month</div>
+          <div class="panel-subtitle">
+            Opportunity value by expected month
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body chart">
+        <div class="bar-chart" id="monthlyChart"></div>
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Pipeline by Stage</div>
+          <div class="panel-subtitle">
+            Current sales funnel
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body" id="stageChart"></div>
+
+    </div>
+
+  </div>
+
+  <div class="grid-2">
+
+    <div class="panel">
+
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Top Opportunities</div>
+          <div class="panel-subtitle">
+            Highest value opportunities
+          </div>
+        </div>
+
+        <button class="btn" onclick="showSection('pipeline')">
+          View All
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Opportunity</th>
+              <th>Sector</th>
+              <th>Value</th>
+              <th>Stage</th>
+              <th>Probability</th>
+            </tr>
+          </thead>
+
+          <tbody id="topOpps"></tbody>
+
+        </table>
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Today's Management View</div>
+          <div class="panel-subtitle">
+            Items requiring attention
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body" id="managementView"></div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- PIPELINE -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-pipeline">
+
+  <div class="kpi-grid">
+
+    <div class="kpi blue">
+      <div class="kpi-label">Total Pipeline</div>
+      <div class="kpi-value" id="pipelineTotal">₹0</div>
+    </div>
+
+    <div class="kpi green">
+      <div class="kpi-label">Qualified</div>
+      <div class="kpi-value" id="pipelineQualified">₹0</div>
+    </div>
+
+    <div class="kpi yellow">
+      <div class="kpi-label">Proposal</div>
+      <div class="kpi-value" id="pipelineProposal">₹0</div>
+    </div>
+
+    <div class="kpi purple">
+      <div class="kpi-label">Negotiation</div>
+      <div class="kpi-value" id="pipelineNegotiation">₹0</div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Sales Pipeline</div>
+        <div class="panel-subtitle">
+          Complete opportunity list
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="toolbar">
+
+        <input
+          class="input"
+          id="pipelineSearch"
+          placeholder="Search company..."
+        >
+
+        <select class="select" id="pipelineStage">
+          <option value="">All stages</option>
+        </select>
+
+        <select class="select" id="pipelineSector">
+          <option value="">All sectors</option>
+        </select>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Sector</th>
+              <th>Value</th>
+              <th>Stage</th>
+              <th>Probability</th>
+              <th>Weighted</th>
+              <th>Owner</th>
+              <th>Month</th>
+            </tr>
+          </thead>
+
+          <tbody id="pipelineTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- PROSPECTS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-prospects">
+
+  <div class="kpi-grid">
+
+    <div class="kpi blue">
+      <div class="kpi-label">Prospects</div>
+      <div class="kpi-value" id="prospectCount">0</div>
+    </div>
+
+    <div class="kpi yellow">
+      <div class="kpi-label">Active Leads</div>
+      <div class="kpi-value" id="activeLeadCount">0</div>
+    </div>
+
+    <div class="kpi green">
+      <div class="kpi-label">Qualified Leads</div>
+      <div class="kpi-value" id="qualifiedLeadCount">0</div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Prospect Management</div>
+        <div class="panel-subtitle">
+          Companies and opportunities from Google Sheets
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="toolbar">
+        <input
+          class="input"
+          id="prospectSearch"
+          placeholder="Search prospect..."
+        >
+
+        <select class="select" id="prospectSector">
+          <option value="">All sectors</option>
+        </select>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Sector</th>
+              <th>Value</th>
+              <th>Stage</th>
+              <th>Probability</th>
+              <th>Owner</th>
+              <th>Expected Month</th>
+            </tr>
+          </thead>
+
+          <tbody id="prospectTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- FOLLOW UPS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-followups">
+
+  <div class="kpi-grid">
+
+    <div class="kpi blue">
+      <div class="kpi-label">Follow-ups</div>
+      <div class="kpi-value" id="followupCount">0</div>
+    </div>
+
+    <div class="kpi red">
+      <div class="kpi-label">Overdue</div>
+      <div class="kpi-value" id="overdueCount">0</div>
+    </div>
+
+    <div class="kpi yellow">
+      <div class="kpi-label">Due Today</div>
+      <div class="kpi-value" id="todayFollowupCount">0</div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Follow-up Tracker</div>
+        <div class="panel-subtitle">
+          Optional Google Sheet columns:
+          follow_up_date, follow_up_status, next_action, contact_person
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Contact</th>
+              <th>Follow-up Date</th>
+              <th>Status</th>
+              <th>Next Action</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+
+          <tbody id="followupTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- SCHEDULE -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-schedule">
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Sales Schedule</div>
+        <div class="panel-subtitle">
+          Meetings, calls, visits and scheduled activities
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Company</th>
+              <th>Activity</th>
+              <th>Contact</th>
+              <th>Time</th>
+              <th>Owner</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody id="scheduleTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- CLIENTS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-clients">
+
+  <div class="kpi-grid">
+
+    <div class="kpi green">
+      <div class="kpi-label">Existing Clients</div>
+      <div class="kpi-value" id="clientCount">0</div>
+    </div>
+
+    <div class="kpi blue">
+      <div class="kpi-label">Client Revenue</div>
+      <div class="kpi-value" id="clientRevenue">₹0</div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Existing Clients</div>
+        <div class="panel-subtitle">
+          Customer relationship and account management
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Sector</th>
+              <th>Account Value</th>
+              <th>Client Since</th>
+              <th>Owner</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody id="clientTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- PAYMENTS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-payments">
+
+  <div class="kpi-grid">
+
+    <div class="kpi red">
+      <div class="kpi-label">Outstanding</div>
+      <div class="kpi-value" id="paymentOutstanding">₹0</div>
+    </div>
+
+    <div class="kpi yellow">
+      <div class="kpi-label">Payment Follow-ups</div>
+      <div class="kpi-value" id="paymentCount">0</div>
+    </div>
+
+    <div class="kpi green">
+      <div class="kpi-label">Collected</div>
+      <div class="kpi-value" id="paymentCollected">₹0</div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Payment Follow-ups</div>
+        <div class="panel-subtitle">
+          Receivables and payment collection tracking
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Invoice</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Follow-up Date</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+
+          <tbody id="paymentTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- PRODUCTS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-products">
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Products & Services</div>
+        <div class="panel-subtitle">
+          Product-wise sales opportunities
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Opportunities</th>
+              <th>Pipeline Value</th>
+              <th>Weighted Value</th>
+              <th>Share</th>
+            </tr>
+          </thead>
+
+          <tbody id="productTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- TARGETS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-targets">
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Sales Targets</div>
+        <div class="panel-subtitle">
+          Monthly and annual sales performance
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="target-box">
+
+        <div>
+          <div class="kpi-label">Monthly Target</div>
+          <div class="target-number" id="monthlyTarget">₹50,00,000</div>
+        </div>
+
+        <div>
+          <div class="kpi-label">Current Pipeline</div>
+          <div class="target-number" id="targetPipeline">₹0</div>
+        </div>
+
+        <div>
+          <div class="kpi-label">Pipeline Coverage</div>
+          <div class="target-number" id="coveragePercent">0%</div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:25px;">
+
+        <div style="display:flex;justify-content:space-between;font-size:11px;">
+          <strong>Pipeline vs Target</strong>
+          <span id="targetProgressText">0%</span>
+        </div>
+
+        <div class="progress">
+          <div
+            class="progress-fill"
+            id="targetProgress"
+            style="width:0%">
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="grid-2">
+
+    <div class="panel">
+
+      <div class="panel-header">
+        <div class="panel-title">Target Management</div>
+      </div>
+
+      <div class="panel-body">
+
+        <label style="font-size:11px;color:var(--muted);">
+          Monthly Target
+        </label>
+
+        <input
+          class="input"
+          id="targetInput"
+          type="number"
+          value="5000000"
+          style="margin-top:7px;width:100%"
+        >
+
+        <button
+          class="btn btn-primary"
+          style="margin-top:10px"
+          onclick="updateTarget()"
+        >
+          Save Target
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <div class="panel-header">
+        <div class="panel-title">Performance Notes</div>
+      </div>
+
+      <div class="panel-body">
+
+        <div class="reminder">
+          <div class="reminder-icon">🎯</div>
+          <div>
+            <div class="reminder-title">Target Coverage</div>
+            <div class="reminder-text">
+              Aim for at least 3× pipeline coverage against the sales target.
+            </div>
+          </div>
+        </div>
+
+        <div class="reminder">
+          <div class="reminder-icon">📈</div>
+          <div>
+            <div class="reminder-title">Pipeline Quality</div>
+            <div class="reminder-text">
+              Prioritize qualified opportunities and high-probability deals.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- ACHIEVEMENTS -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-achievements">
+
+  <div class="kpi-grid">
+
+    <div class="kpi green">
+      <div class="kpi-label">Pipeline Generated</div>
+      <div class="kpi-value" id="achievementPipeline">₹0</div>
+    </div>
+
+    <div class="kpi blue">
+      <div class="kpi-label">Opportunities</div>
+      <div class="kpi-value" id="achievementOpps">0</div>
+    </div>
+
+    <div class="kpi yellow">
+      <div class="kpi-label">High Probability</div>
+      <div class="kpi-value" id="achievementHigh">0</div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Achievements & Highlights</div>
+        <div class="panel-subtitle">
+          Automatically generated from current sales data
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body" id="achievementList"></div>
+
+  </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- DATA -->
+<!-- ========================================================= -->
+
+<section class="section" id="section-data">
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Google Sheets / Data Source</div>
+        <div class="panel-subtitle">
+          Published CSV → Vercel secure server-side fetch
+        </div>
+      </div>
+
+      <div class="status">
+        <span class="status-dot" id="dataStatusDot"></span>
+        <span id="dataStatus">Not connected</span>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="source-box">
+
+        <p style="font-size:12px;margin-top:0;">
+          The dashboard reads your published Google Sheet through the
+          Vercel server-side endpoint.
+        </p>
+
+        <label style="font-size:11px;font-weight:700;">
+          Published CSV URL
+        </label>
+
+        <textarea
+          class="source-url"
+          id="sheetUrl"
+        >https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv</textarea>
+
+        <div style="display:flex;gap:8px;margin-top:10px;">
+
+          <button
+            class="btn btn-primary"
+            id="loadDataBtn"
+          >
+            Load / Refresh Data
+          </button>
+
+          <button
+            class="btn"
+            id="resetUrlBtn"
+          >
+            Reset URL
+          </button>
+
+        </div>
+
+        <div style="margin-top:13px;font-size:10px;color:var(--muted);">
+
+          Expected basic columns:
+
+          <strong>
+            company, sector, value, stage, probability, owner, month
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <div class="panel-title">Data Diagnostics</div>
+        <div class="panel-subtitle">
+          Current connection and imported records
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div id="diagnostics"></div>
+
+    </div>
+
+  </div>
+
+</section>
+
 </div>
 </main>
+
+</div>
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modal">
+
+  <div class="modal">
+
+    <div class="modal-header">
+      <strong id="modalTitle">Details</strong>
+
+      <button
+        class="close"
+        onclick="closeModal()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="modal-body" id="modalBody"></div>
+
+  </div>
+
+</div>
+
 <script>
-const demo={
-target:5000000,achieved:2850000,
-prospects:3,followups:2,outstanding:275000,
-stages:{Lead:0,Qualified:1,Requirement:0,Proposal:1,Negotiation:1,Won:0,Lost:0},
-sectors:{Construction:450000,'Data Center':800000,Healthcare:300000},
-products:{'Diesel Cube':750000,'Cube + RFID + SaaS':800000},
-deals:[['Hyderabad Data Systems','Data Center',800000,'Negotiation',80],['ABC Infra Projects','Construction',450000,'Proposal',70],['Prime Hospitals','Healthcare',300000,'Qualified',45]],
-monthly:{Mar:600000,Apr:900000,May:1200000,Jun:1600000,Jul:2200000,Aug:2850000}
-};
-let data=JSON.parse(localStorage.getItem('bossDashboardData')||'null')||demo;
-function money(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
-function badge(v){let x=String(v).toLowerCase();let c=x==='won'?'green':(x==='negotiation'||x==='proposal'||x==='qualified')?'orange':'blue';return `<span class="pill ${c}">${v}</span>`}
-function render(){
-document.getElementById('date').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-document.getElementById('target').textContent=money(data.target);document.getElementById('achieved').textContent=money(data.achieved);document.getElementById('pipeline').textContent=money(Object.entries(data.stages||{}).filter(([s])=>!['Won','Lost'].includes(s)).reduce((a,[s])=>a+(data.stageValues?.[s]||0),0)||data.deals.reduce((a,x)=>a+x[2],0));document.getElementById('prospects').textContent=data.prospects;document.getElementById('followups').textContent=data.followups;document.getElementById('outstanding').textContent=money(data.outstanding);document.getElementById('achievementPct').textContent=(data.target?data.achieved/data.target*100:0).toFixed(1)+'% of target';
-let months=Object.entries(data.monthly||{}),max=Math.max(...months.map(x=>x[1]),1);document.getElementById('bars').innerHTML=months.map(([m,v])=>`<div class="barcol"><b>${money(v/1000)}K</b><div class="bar" style="height:${Math.max(4,v/max*165)}px"></div><small>${m}</small></div>`).join('');
-let total=Object.values(data.stages||{}).reduce((a,b)=>a+b,0);document.getElementById('stages').innerHTML=Object.entries(data.stages||{}).map(([s,n])=>`<div class="listrow"><div style="display:flex;justify-content:space-between"><b>${s}</b><span>${n}</span></div><div class="progress" style="margin-top:6px"><span style="width:${total?Math.max(2,n/total*100):0}%"></span></div></div>`).join('');
-renderRank('sectors',data.sectors||{},'money');renderRank('products',data.products||{},'money');
-document.getElementById('priorities').innerHTML=`<div class="listrow"><b>${data.followups}</b> follow-ups require attention</div><div class="listrow"><b>${money(data.outstanding)}</b> outstanding payments</div><div class="listrow"><b>${(data.target?data.achieved/data.target*100:0).toFixed(1)}%</b> target achievement</div>`;
-document.getElementById('topDeals').innerHTML=data.deals?.length?`<table><tr><th>Opportunity</th><th>Sector</th><th>Value</th><th>Stage</th><th>Probability</th></tr>${data.deals.sort((a,b)=>b[2]-a[2]).slice(0,10).map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${money(x[2])}</td><td>${badge(x[3])}</td><td>${x[4]}%</td></tr>`).join('')}</table>`:'<div class="empty">No opportunities available.</div>';
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const DEFAULT_SHEET_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
+
+const API_ENDPOINT = "/api/sheets";
+
+let data = [];
+let target = Number(localStorage.getItem("atd_sales_target")) || 5000000;
+
+let lastSync = null;
+
+
+/* =========================================================
+   DOM HELPERS
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
 }
-function renderRank(id,obj,mode){let a=Object.entries(obj).sort((x,y)=>y[1]-x[1]),max=Math.max(...a.map(x=>x[1]),1);document.getElementById(id).innerHTML=a.map(([k,v])=>`<div class="listrow"><div style="display:flex;justify-content:space-between"><b>${k}</b><span>${mode==='money'?money(v):v}</span></div><div class="progress" style="margin-top:6px"><span style="width:${Math.min(100,v/max*100)}%"></span></div></div>`).join('')||'<div class="empty">No data.</div>'}
-function showSetup(){document.getElementById('setup').classList.add('show');document.getElementById('csvUrl').value=localStorage.getItem('bossCsvUrl')||''}
-function hideSetup(){document.getElementById('setup').classList.remove('show')}
-async function loadCSV(){let url=document.getElementById('csvUrl').value.trim();if(!url){alert('Paste a published CSV URL first.');return}localStorage.setItem('bossCsvUrl',url);try{let proxy='/api/sheets?url='+encodeURIComponent(url);let resp=await fetch(proxy,{cache:'no-store'});let text=await resp.text();if(!resp.ok)throw Error(text||('HTTP '+resp.status));let rows=parseCSV(text);if(rows.length<2)throw Error('No data');let headers=rows[0].map(x=>x.trim().toLowerCase());let records=rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]||''])));let d={...demo};d.prospects=records.length;d.deals=records.map(r=>[r.company||'Opportunity',r.sector||'Other',Number(r.value||0),r.stage||'Lead',Number(r.probability||0)]);d.stages={};d.sectors={};records.forEach(r=>{d.stages[r.stage||'Lead']=(d.stages[r.stage||'Lead']||0)+1;d.sectors[r.sector||'Other']=(d.sectors[r.sector||'Other']||0)+Number(r.value||0)});data=d;localStorage.setItem('bossDashboardData',JSON.stringify(data));document.getElementById('updated').textContent='Synced from Google Sheets';render();alert('Dashboard data loaded.');}catch(e){alert('Could not load Google Sheets data. The dashboard now uses a secure Vercel server-side fetch. Check the published CSV URL and try again. Details: '+(e.message||e))} }
-function parseCSV(s){let rows=[],row=[],cell='',q=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'){if(q&&s[i+1]==='"'){cell+='"';i++}else q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\\n'||c==='\\r')&&!q){if(c==='\\r'&&s[i+1]==='\\n')i++;row.push(cell);cell='';if(row.some(x=>x!==''))rows.push(row);row=[]}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}return rows}
-render();
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+const sectionTitles = {
+  overview:"Executive Overview",
+  pipeline:"Sales Pipeline",
+  prospects:"Prospects",
+  followups:"Follow-ups",
+  schedule:"Schedule",
+  clients:"Existing Clients",
+  payments:"Payment Follow-ups",
+  products:"Products",
+  targets:"Sales Targets",
+  achievements:"Achievements",
+  data:"Data Source"
+};
+
+document.querySelectorAll(".nav-btn").forEach(btn => {
+
+  btn.addEventListener("click",() => {
+
+    showSection(btn.dataset.section);
+
+  });
+
+});
+
+function showSection(name){
+
+  document.querySelectorAll(".section")
+    .forEach(s => s.classList.remove("active"));
+
+  document.querySelectorAll(".nav-btn")
+    .forEach(b => b.classList.remove("active"));
+
+  const section = $("section-" + name);
+
+  if(section){
+    section.classList.add("active");
+  }
+
+  const nav = document.querySelector(
+    `.nav-btn[data-section="${name}"]`
+  );
+
+  if(nav){
+    nav.classList.add("active");
+  }
+
+  $("pageTitle").textContent =
+    sectionTitles[name] || "Sales Dashboard";
+
+  $("sidebar").classList.remove("open");
+
+}
+
+$("mobileMenu").addEventListener("click",() => {
+
+  $("sidebar").classList.toggle("open");
+
+});
+
+
+/* =========================================================
+   CSV PARSER
+========================================================= */
+
+function parseCSV(text){
+
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let insideQuotes = false;
+
+  for(let i=0;i<text.length;i++){
+
+    const char = text[i];
+    const next = text[i+1];
+
+    if(char === '"' && insideQuotes && next === '"'){
+
+      cell += '"';
+      i++;
+      continue;
+
+    }
+
+    if(char === '"'){
+
+      insideQuotes = !insideQuotes;
+      continue;
+
+    }
+
+    if(char === "," && !insideQuotes){
+
+      row.push(cell);
+      cell = "";
+      continue;
+
+    }
+
+    if((char === "\n" || char === "\r") && !insideQuotes){
+
+      if(char === "\r" && next === "\n"){
+        i++;
+      }
+
+      row.push(cell);
+      cell = "";
+
+      if(row.some(v => String(v).trim() !== "")){
+        rows.push(row);
+      }
+
+      row = [];
+
+      continue;
+
+    }
+
+    cell += char;
+
+  }
+
+  if(cell !== "" || row.length){
+
+    row.push(cell);
+
+    if(row.some(v => String(v).trim() !== "")){
+      rows.push(row);
+    }
+
+  }
+
+  if(rows.length === 0){
+    return [];
+  }
+
+  const headers = rows[0].map(h =>
+    normalizeHeader(h)
+  );
+
+  const result = [];
+
+  for(let i=1;i<rows.length;i++){
+
+    const values = rows[i];
+
+    const obj = {};
+
+    headers.forEach((header,index) => {
+
+      obj[header] =
+        values[index] !== undefined
+          ? String(values[index]).trim()
+          : "";
+
+    });
+
+    // Ignore completely blank records.
+    if(Object.values(obj).some(v => v !== "")){
+
+      result.push(obj);
+
+    }
+
+  }
+
+  return result;
+
+}
+
+
+/* =========================================================
+   HEADER NORMALIZATION
+========================================================= */
+
+function normalizeHeader(value){
+
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\-\/]+/g,"_")
+    .replace(/[^\w]/g,"");
+
+}
+
+
+/* =========================================================
+   NUMBER HELPERS
+========================================================= */
+
+function toNumber(value){
+
+  if(value === null || value === undefined){
+    return 0;
+  }
+
+  let text = String(value)
+    .replace(/₹/g,"")
+    .replace(/,/g,"")
+    .replace(/%/g,"")
+    .trim();
+
+  const n = Number(text);
+
+  return Number.isFinite(n) ? n : 0;
+
+}
+
+
+function money(value){
+
+  const n = toNumber(value);
+
+  return "₹" + n.toLocaleString("en-IN",{
+    maximumFractionDigits:0
+  });
+
+}
+
+
+function percent(value){
+
+  return Math.round(toNumber(value)) + "%";
+
+}
+
+
+/* =========================================================
+   FIELD HELPERS
+========================================================= */
+
+function field(row, ...names){
+
+  for(const name of names){
+
+    const key = normalizeHeader(name);
+
+    if(row[key] !== undefined && row[key] !== ""){
+      return row[key];
+    }
+
+  }
+
+  return "";
+
+}
+
+
+/* =========================================================
+   DATE HELPERS
+========================================================= */
+
+function parseDate(value){
+
+  if(!value) return null;
+
+  const d = new Date(value);
+
+  if(!isNaN(d.getTime())){
+    return d;
+  }
+
+  return null;
+
+}
+
+
+function dateOnly(value){
+
+  const d = parseDate(value);
+
+  if(!d) return "";
+
+  return d.toLocaleDateString("en-IN",{
+    day:"2-digit",
+    month:"short",
+    year:"numeric"
+  });
+
+}
+
+
+function todayISO(){
+
+  const d = new Date();
+
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+
+}
+
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+function stageBadge(stage){
+
+  const s = String(stage || "").toLowerCase();
+
+  let cls = "badge-gray";
+
+  if(s.includes("won") || s.includes("closed")){
+    cls = "badge-green";
+  }
+  else if(s.includes("negotiat")){
+    cls = "badge-purple";
+  }
+  else if(s.includes("proposal")){
+    cls = "badge-yellow";
+  }
+  else if(s.includes("qualif")){
+    cls = "badge-blue";
+  }
+  else if(s.includes("lost")){
+    cls = "badge-red";
+  }
+
+  return `<span class="badge ${cls}">
+    ${escapeHTML(stage || "—")}
+  </span>`;
+
+}
+
+
+/* =========================================================
+   LOAD DATA
+========================================================= */
+
+async function loadData(){
+
+  const url =
+    $("sheetUrl").value.trim() || DEFAULT_SHEET_URL;
+
+  setStatus("loading","Loading Google Sheets...");
+
+  $("loadDataBtn").disabled = true;
+  $("refreshBtn").disabled = true;
+
+  try{
+
+    const endpoint =
+      API_ENDPOINT +
+      "?url=" +
+      encodeURIComponent(url);
+
+    const response =
+      await fetch(endpoint,{
+        method:"GET",
+        cache:"no-store"
+      });
+
+    if(!response.ok){
+
+      throw new Error(
+        `Server returned HTTP ${response.status}`
+      );
+
+    }
+
+    const text = await response.text();
+
+    if(!text || text.trim().length < 5){
+
+      throw new Error("Google Sheets returned no data.");
+
+    }
+
+    const parsed = parseCSV(text);
+
+    if(!parsed.length){
+
+      throw new Error(
+        "No usable records were found in the CSV."
+      );
+
+    }
+
+    data = parsed;
+
+    localStorage.setItem(
+      "atd_google_sheet_url",
+      url
+    );
+
+    lastSync = new Date();
+
+    setStatus(
+      "online",
+      `Synced ${lastSync.toLocaleTimeString("en-IN")}`
+    );
+
+    renderAll();
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    setStatus(
+      "error",
+      "Sync failed"
+    );
+
+    alert(
+      "Could not load Google Sheets data.\n\n" +
+      "Details: " +
+      error.message
+    );
+
+    renderAll();
+
+  }
+  finally{
+
+    $("loadDataBtn").disabled = false;
+    $("refreshBtn").disabled = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(type,text){
+
+  $("statusDot").className =
+    "status-dot " + type;
+
+  $("statusText").textContent = text;
+
+  $("dataStatusDot").className =
+    "status-dot " + type;
+
+  $("dataStatus").textContent = text;
+
+}
+
+
+/* =========================================================
+   RENDER ALL
+========================================================= */
+
+function renderAll(){
+
+  renderOverview();
+
+  renderPipeline();
+
+  renderProspects();
+
+  renderFollowups();
+
+  renderSchedule();
+
+  renderClients();
+
+  renderPayments();
+
+  renderProducts();
+
+  renderTargets();
+
+  renderAchievements();
+
+  renderDiagnostics();
+
+}
+
+
+/* =========================================================
+   OVERVIEW
+========================================================= */
+
+function renderOverview(){
+
+  const pipeline =
+    data.reduce((sum,row) =>
+      sum + toNumber(field(row,"value")),
+      0
+    );
+
+  const weighted =
+    data.reduce((sum,row) => {
+
+      const value =
+        toNumber(field(row,"value"));
+
+      const probability =
+        toNumber(field(row,"probability"));
+
+      return sum + value * probability / 100;
+
+    },0);
+
+  const high =
+    data.filter(row =>
+      toNumber(field(row,"probability")) >= 70
+    ).length;
+
+  const owners =
+    new Set(
+      data
+        .map(row => field(row,"owner"))
+        .filter(Boolean)
+    ).size;
+
+  const won =
+    data.filter(row =>
+      String(field(row,"stage"))
+        .toLowerCase()
+        .includes("won")
+    ).length;
+
+  const closed =
+    data.filter(row => {
+
+      const stage =
+        String(field(row,"stage")).toLowerCase();
+
+      return stage.includes("won") ||
+             stage.includes("lost");
+
+    }).length;
+
+  const winRate =
+    closed
+      ? Math.round(won / closed * 100)
+      : 0;
+
+  $("kpiPipeline").textContent = money(pipeline);
+
+  $("kpiWeighted").textContent = money(weighted);
+
+  $("kpiOpps").textContent = data.length;
+
+  $("kpiWinRate").textContent = winRate + "%";
+
+  $("kpiHigh").textContent = high;
+
+  $("kpiOwners").textContent = owners;
+
+  renderMonthlyChart();
+
+  renderStageChart();
+
+  renderTopOpportunities();
+
+  renderManagementView();
+
+}
+
+
+/* =========================================================
+   MONTHLY CHART
+========================================================= */
+
+function renderMonthlyChart(){
+
+  const totals = {};
+
+  data.forEach(row => {
+
+    const month =
+      field(row,"month","expected_month");
+
+    if(!month) return;
+
+    totals[month] =
+      (totals[month] || 0) +
+      toNumber(field(row,"value"));
+
+  });
+
+  const months =
+    Object.keys(totals).sort();
+
+  const max =
+    Math.max(
+      ...months.map(m => totals[m]),
+      1
+    );
+
+  if(!months.length){
+
+    $("monthlyChart").innerHTML =
+      `<div class="empty">No monthly data available.</div>`;
+
+    return;
+
+  }
+
+  $("monthlyChart").innerHTML =
+    months.map(month => {
+
+      const value = totals[month];
+
+      const height =
+        Math.max(
+          4,
+          Math.round(value / max * 160)
+        );
+
+      return `
+        <div class="bar-col">
+          <div class="bar-value">${money(value)}</div>
+          <div class="bar" style="height:${height}px"></div>
+          <div class="bar-label">
+            ${escapeHTML(month)}
+          </div>
+        </div>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   STAGE CHART
+========================================================= */
+
+function renderStageChart(){
+
+  const totals = {};
+
+  data.forEach(row => {
+
+    const stage =
+      field(row,"stage") || "Unknown";
+
+    totals[stage] =
+      (totals[stage] || 0) +
+      toNumber(field(row,"value"));
+
+  });
+
+  const total =
+    Object.values(totals)
+      .reduce((a,b)=>a+b,0);
+
+  const stages =
+    Object.entries(totals)
+      .sort((a,b)=>b[1]-a[1]);
+
+  if(!stages.length){
+
+    $("stageChart").innerHTML =
+      `<div class="empty">No pipeline stages available.</div>`;
+
+    return;
+
+  }
+
+  $("stageChart").innerHTML =
+    stages.map(([stage,value]) => {
+
+      const share =
+        total
+          ? Math.round(value / total * 100)
+          : 0;
+
+      return `
+        <div class="pipeline-row">
+
+          <div class="pipeline-head">
+            <strong>${escapeHTML(stage)}</strong>
+            <span>${money(value)} · ${share}%</span>
+          </div>
+
+          <div class="pipeline-track">
+            <div
+              class="pipeline-fill"
+              style="width:${share}%">
+            </div>
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   TOP OPPORTUNITIES
+========================================================= */
+
+function renderTopOpportunities(){
+
+  const rows =
+    [...data]
+      .sort(
+        (a,b) =>
+          toNumber(field(b,"value")) -
+          toNumber(field(a,"value"))
+      )
+      .slice(0,5);
+
+  if(!rows.length){
+
+    $("topOpps").innerHTML =
+      `<tr><td colspan="5" class="empty">
+        No opportunities found.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("topOpps").innerHTML =
+    rows.map(row => {
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHTML(field(row,"company") || "—")}
+            </strong>
+          </td>
+
+          <td>
+            ${escapeHTML(field(row,"sector") || "—")}
+          </td>
+
+          <td>
+            ${money(field(row,"value"))}
+          </td>
+
+          <td>
+            ${stageBadge(field(row,"stage"))}
+          </td>
+
+          <td>
+            ${percent(field(row,"probability"))}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   MANAGEMENT VIEW
+========================================================= */
+
+function renderManagementView(){
+
+  const high =
+    data.filter(row =>
+      toNumber(field(row,"probability")) >= 70
+    ).length;
+
+  const proposal =
+    data.filter(row =>
+      String(field(row,"stage"))
+        .toLowerCase()
+        .includes("proposal")
+    ).length;
+
+  const negotiation =
+    data.filter(row =>
+      String(field(row,"stage"))
+        .toLowerCase()
+        .includes("negotiat")
+    ).length;
+
+  $("managementView").innerHTML = `
+
+    <div class="reminder">
+
+      <div class="reminder-icon">🔥</div>
+
+      <div>
+        <div class="reminder-title">
+          ${high} high-probability opportunities
+        </div>
+
+        <div class="reminder-text">
+          Focus on deals with probability of 70% or above.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="reminder">
+
+      <div class="reminder-icon">📄</div>
+
+      <div>
+        <div class="reminder-title">
+          ${proposal} proposal-stage opportunities
+        </div>
+
+        <div class="reminder-text">
+          Follow up on submitted commercial proposals.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="reminder">
+
+      <div class="reminder-icon">🤝</div>
+
+      <div>
+        <div class="reminder-title">
+          ${negotiation} negotiations
+        </div>
+
+        <div class="reminder-text">
+          Prioritize commercial closure and decision-maker meetings.
+        </div>
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   PIPELINE
+========================================================= */
+
+function renderPipeline(){
+
+  const total =
+    data.reduce(
+      (sum,row) =>
+        sum + toNumber(field(row,"value")),
+      0
+    );
+
+  $("pipelineTotal").textContent =
+    money(total);
+
+  $("pipelineQualified").textContent =
+    money(stageValue("qualified"));
+
+  $("pipelineProposal").textContent =
+    money(stageValue("proposal"));
+
+  $("pipelineNegotiation").textContent =
+    money(stageValue("negotiat"));
+
+  populateFilter(
+    $("pipelineStage"),
+    data.map(row => field(row,"stage"))
+  );
+
+  populateFilter(
+    $("pipelineSector"),
+    data.map(row => field(row,"sector"))
+  );
+
+  renderPipelineTable();
+
+}
+
+
+function stageValue(keyword){
+
+  return data
+    .filter(row =>
+      String(field(row,"stage"))
+        .toLowerCase()
+        .includes(keyword)
+    )
+    .reduce(
+      (sum,row) =>
+        sum + toNumber(field(row,"value")),
+      0
+    );
+
+}
+
+
+function renderPipelineTable(){
+
+  const search =
+    ($("pipelineSearch").value || "")
+      .toLowerCase();
+
+  const stage =
+    $("pipelineStage").value;
+
+  const sector =
+    $("pipelineSector").value;
+
+  const rows =
+    data.filter(row => {
+
+      const company =
+        field(row,"company").toLowerCase();
+
+      const rowStage =
+        field(row,"stage");
+
+      const rowSector =
+        field(row,"sector");
+
+      return (
+        (!search || company.includes(search)) &&
+        (!stage || rowStage === stage) &&
+        (!sector || rowSector === sector)
+      );
+
+    });
+
+  if(!rows.length){
+
+    $("pipelineTable").innerHTML =
+      `<tr><td colspan="8" class="empty">
+        No matching opportunities.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("pipelineTable").innerHTML =
+    rows.map(row => {
+
+      const value =
+        toNumber(field(row,"value"));
+
+      const probability =
+        toNumber(field(row,"probability"));
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHTML(field(row,"company") || "—")}
+            </strong>
+          </td>
+
+          <td>${escapeHTML(field(row,"sector") || "—")}</td>
+
+          <td>${money(value)}</td>
+
+          <td>${stageBadge(field(row,"stage"))}</td>
+
+          <td>${percent(probability)}</td>
+
+          <td>${money(value * probability / 100)}</td>
+
+          <td>${escapeHTML(field(row,"owner") || "—")}</td>
+
+          <td>${escapeHTML(field(row,"month") || "—")}</td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   PROSPECTS
+========================================================= */
+
+function renderProspects(){
+
+  $("prospectCount").textContent =
+    data.length;
+
+  $("activeLeadCount").textContent =
+    data.filter(row =>
+      !String(field(row,"stage"))
+        .toLowerCase()
+        .includes("lost")
+    ).length;
+
+  $("qualifiedLeadCount").textContent =
+    data.filter(row =>
+      String(field(row,"stage"))
+        .toLowerCase()
+        .includes("qualif")
+    ).length;
+
+  populateFilter(
+    $("prospectSector"),
+    data.map(row => field(row,"sector"))
+  );
+
+  renderProspectTable();
+
+}
+
+
+function renderProspectTable(){
+
+  const search =
+    ($("prospectSearch").value || "")
+      .toLowerCase();
+
+  const sector =
+    $("prospectSector").value;
+
+  const rows =
+    data.filter(row => {
+
+      const company =
+        field(row,"company").toLowerCase();
+
+      return (
+        (!search || company.includes(search)) &&
+        (!sector || field(row,"sector") === sector)
+      );
+
+    });
+
+  if(!rows.length){
+
+    $("prospectTable").innerHTML =
+      `<tr><td colspan="7" class="empty">
+        No prospects available.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("prospectTable").innerHTML =
+    rows.map(row => {
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHTML(field(row,"company") || "—")}
+            </strong>
+          </td>
+
+          <td>${escapeHTML(field(row,"sector") || "—")}</td>
+
+          <td>${money(field(row,"value"))}</td>
+
+          <td>${stageBadge(field(row,"stage"))}</td>
+
+          <td>${percent(field(row,"probability"))}</td>
+
+          <td>${escapeHTML(field(row,"owner") || "—")}</td>
+
+          <td>${escapeHTML(field(row,"month") || "—")}</td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   FOLLOW UPS
+========================================================= */
+
+function renderFollowups(){
+
+  const rows =
+    data.filter(row =>
+      field(
+        row,
+        "follow_up_date",
+        "followup_date",
+        "next_follow_up",
+        "next_followup"
+      )
+    );
+
+  $("followupCount").textContent =
+    rows.length;
+
+  const today =
+    new Date(todayISO());
+
+  const overdue =
+    rows.filter(row => {
+
+      const d =
+        parseDate(
+          field(
+            row,
+            "follow_up_date",
+            "followup_date",
+            "next_follow_up"
+          )
+        );
+
+      return d && d < today;
+
+    }).length;
+
+  const dueToday =
+    rows.filter(row => {
+
+      const d =
+        field(
+          row,
+          "follow_up_date",
+          "followup_date",
+          "next_follow_up"
+        );
+
+      return d &&
+        d.startsWith(todayISO());
+
+    }).length;
+
+  $("overdueCount").textContent =
+    overdue;
+
+  $("todayFollowupCount").textContent =
+    dueToday;
+
+  if(!rows.length){
+
+    $("followupTable").innerHTML =
+      `<tr><td colspan="6" class="empty">
+        No follow-up records found.
+        Add follow_up_date to your Google Sheet for this section.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("followupTable").innerHTML =
+    rows.map(row => {
+
+      const date =
+        field(
+          row,
+          "follow_up_date",
+          "followup_date",
+          "next_follow_up"
+        );
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHTML(field(row,"company") || "—")}
+            </strong>
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"contact_person","contact","contact_name") || "—"
+            )}
+          </td>
+
+          <td>${escapeHTML(dateOnly(date) || date)}</td>
+
+          <td>
+            ${stageBadge(
+              field(row,"follow_up_status","followup_status","status") ||
+              "Pending"
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"next_action","action") || "Follow up"
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(field(row,"owner") || "—")}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   SCHEDULE
+========================================================= */
+
+function renderSchedule(){
+
+  const rows =
+    data.filter(row =>
+      field(
+        row,
+        "schedule_date",
+        "meeting_date",
+        "activity_date",
+        "visit_date"
+      )
+    );
+
+  if(!rows.length){
+
+    $("scheduleTable").innerHTML =
+      `<tr><td colspan="7" class="empty">
+        No scheduled activities found.
+        Add schedule_date to your Google Sheet.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("scheduleTable").innerHTML =
+    rows.map(row => {
+
+      const date =
+        field(
+          row,
+          "schedule_date",
+          "meeting_date",
+          "activity_date",
+          "visit_date"
+        );
+
+      return `
+        <tr>
+
+          <td>${escapeHTML(dateOnly(date) || date)}</td>
+
+          <td>${escapeHTML(field(row,"company") || "—")}</td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"activity","meeting_type","schedule_type") || "Activity"
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"contact_person","contact","contact_name") || "—"
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(field(row,"time","meeting_time") || "—")}
+          </td>
+
+          <td>${escapeHTML(field(row,"owner") || "—")}</td>
+
+          <td>
+            ${stageBadge(
+              field(row,"status") || "Scheduled"
+            )}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   CLIENTS
+========================================================= */
+
+function renderClients(){
+
+  const rows =
+    data.filter(row => {
+
+      const value =
+        field(
+          row,
+          "client_status",
+          "customer_status",
+          "account_status"
+        );
+
+      return value &&
+        (
+          value.toLowerCase().includes("existing") ||
+          value.toLowerCase().includes("active") ||
+          value.toLowerCase().includes("client")
+        );
+
+    });
+
+  $("clientCount").textContent =
+    rows.length;
+
+  const revenue =
+    rows.reduce(
+      (sum,row) =>
+        sum +
+        toNumber(
+          field(
+            row,
+            "account_value",
+            "client_revenue",
+            "revenue"
+          )
+        ),
+      0
+    );
+
+  $("clientRevenue").textContent =
+    money(revenue);
+
+  if(!rows.length){
+
+    $("clientTable").innerHTML =
+      `<tr><td colspan="6" class="empty">
+        No existing-client records found.
+        Add client_status to your Google Sheet.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("clientTable").innerHTML =
+    rows.map(row => {
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHTML(field(row,"company") || "—")}
+            </strong>
+          </td>
+
+          <td>${escapeHTML(field(row,"sector") || "—")}</td>
+
+          <td>
+            ${money(
+              field(row,"account_value","client_revenue","revenue")
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"client_since","customer_since") || "—"
+            )}
+          </td>
+
+          <td>${escapeHTML(field(row,"owner") || "—")}</td>
+
+          <td>
+            ${stageBadge(
+              field(row,"client_status","customer_status","account_status")
+            )}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   PAYMENTS
+========================================================= */
+
+function renderPayments(){
+
+  const rows =
+    data.filter(row =>
+      field(
+        row,
+        "payment_amount",
+        "outstanding",
+        "outstanding_amount",
+        "invoice_amount"
+      )
+    );
+
+  const outstanding =
+    rows.reduce(
+      (sum,row) =>
+        sum +
+        toNumber(
+          field(
+            row,
+            "outstanding",
+            "outstanding_amount"
+          )
+        ),
+      0
+    );
+
+  const collected =
+    rows.reduce(
+      (sum,row) =>
+        sum +
+        toNumber(
+          field(
+            row,
+            "collected",
+            "paid_amount"
+          )
+        ),
+      0
+    );
+
+  $("paymentOutstanding").textContent =
+    money(outstanding);
+
+  $("paymentCount").textContent =
+    rows.length;
+
+  $("paymentCollected").textContent =
+    money(collected);
+
+  if(!rows.length){
+
+    $("paymentTable").innerHTML =
+      `<tr><td colspan="7" class="empty">
+        No payment follow-up records found.
+        Add payment_amount or outstanding to your Google Sheet.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("paymentTable").innerHTML =
+    rows.map(row => {
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHTML(field(row,"company") || "—")}
+            </strong>
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"invoice","invoice_number") || "—"
+            )}
+          </td>
+
+          <td>
+            ${money(
+              field(
+                row,
+                "outstanding",
+                "outstanding_amount",
+                "payment_amount",
+                "invoice_amount"
+              )
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"due_date","payment_due_date") || "—"
+            )}
+          </td>
+
+          <td>
+            ${stageBadge(
+              field(row,"payment_status","status") || "Pending"
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(
+              field(row,"payment_followup_date","follow_up_date") || "—"
+            )}
+          </td>
+
+          <td>${escapeHTML(field(row,"owner") || "—")}</td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+function renderProducts(){
+
+  const groups = {};
+
+  data.forEach(row => {
+
+    const product =
+      field(
+        row,
+        "product",
+        "product_name",
+        "service"
+      ) || "Unspecified";
+
+    if(!groups[product]){
+
+      groups[product] = {
+        count:0,
+        value:0,
+        weighted:0
+      };
+
+    }
+
+    const value =
+      toNumber(field(row,"value"));
+
+    const probability =
+      toNumber(field(row,"probability"));
+
+    groups[product].count++;
+
+    groups[product].value += value;
+
+    groups[product].weighted +=
+      value * probability / 100;
+
+  });
+
+  const total =
+    Object.values(groups)
+      .reduce((sum,x)=>sum+x.value,0);
+
+  const products =
+    Object.entries(groups)
+      .sort((a,b)=>b[1].value-a[1].value);
+
+  if(!products.length){
+
+    $("productTable").innerHTML =
+      `<tr><td colspan="5" class="empty">
+        No product information found.
+        Add product or product_name to your Google Sheet.
+      </td></tr>`;
+
+    return;
+
+  }
+
+  $("productTable").innerHTML =
+    products.map(([product,item]) => {
+
+      const share =
+        total
+          ? Math.round(item.value / total * 100)
+          : 0;
+
+      return `
+        <tr>
+
+          <td>
+            <strong>${escapeHTML(product)}</strong>
+          </td>
+
+          <td>${item.count}</td>
+
+          <td>${money(item.value)}</td>
+
+          <td>${money(item.weighted)}</td>
+
+          <td>${share}%</td>
+
+        </tr>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   TARGETS
+========================================================= */
+
+function renderTargets(){
+
+  $("monthlyTarget").textContent =
+    money(target);
+
+  $("targetInput").value =
+    target;
+
+  const pipeline =
+    data.reduce(
+      (sum,row) =>
+        sum + toNumber(field(row,"value")),
+      0
+    );
+
+  $("targetPipeline").textContent =
+    money(pipeline);
+
+  const coverage =
+    target
+      ? Math.round(pipeline / target * 100)
+      : 0;
+
+  $("coveragePercent").textContent =
+    coverage + "%";
+
+  const progress =
+    Math.min(
+      100,
+      coverage
+    );
+
+  $("targetProgress").style.width =
+    progress + "%";
+
+  $("targetProgressText").textContent =
+    coverage + "%";
+
+}
+
+
+function updateTarget(){
+
+  const value =
+    toNumber($("targetInput").value);
+
+  if(value <= 0){
+
+    alert("Please enter a valid target.");
+
+    return;
+
+  }
+
+  target = value;
+
+  localStorage.setItem(
+    "atd_sales_target",
+    target
+  );
+
+  renderTargets();
+
+}
+
+
+/* =========================================================
+   ACHIEVEMENTS
+========================================================= */
+
+function renderAchievements(){
+
+  const pipeline =
+    data.reduce(
+      (sum,row) =>
+        sum + toNumber(field(row,"value")),
+      0
+    );
+
+  const high =
+    data.filter(row =>
+      toNumber(field(row,"probability")) >= 70
+    ).length;
+
+  $("achievementPipeline").textContent =
+    money(pipeline);
+
+  $("achievementOpps").textContent =
+    data.length;
+
+  $("achievementHigh").textContent =
+    high;
+
+  const largest =
+    [...data]
+      .sort(
+        (a,b) =>
+          toNumber(field(b,"value")) -
+          toNumber(field(a,"value"))
+      )[0];
+
+  const bestProbability =
+    [...data]
+      .sort(
+        (a,b) =>
+          toNumber(field(b,"probability")) -
+          toNumber(field(a,"probability"))
+      )[0];
+
+  let html = "";
+
+  if(largest){
+
+    html += `
+      <div class="reminder">
+
+        <div class="reminder-icon">🏆</div>
+
+        <div>
+
+          <div class="reminder-title">
+            Largest opportunity:
+            ${escapeHTML(field(largest,"company"))}
+          </div>
+
+          <div class="reminder-text">
+            ${money(field(largest,"value"))}
+            pipeline value.
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+  if(bestProbability){
+
+    html += `
+      <div class="reminder">
+
+        <div class="reminder-icon">🔥</div>
+
+        <div>
+
+          <div class="reminder-title">
+            Highest probability opportunity:
+            ${escapeHTML(field(bestProbability,"company"))}
+          </div>
+
+          <div class="reminder-text">
+            ${percent(field(bestProbability,"probability"))}
+            probability.
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+  if(!html){
+
+    html =
+      `<div class="empty">
+        Add sales records to generate achievements.
+      </div>`;
+
+  }
+
+  $("achievementList").innerHTML = html;
+
+}
+
+
+/* =========================================================
+   DIAGNOSTICS
+========================================================= */
+
+function renderDiagnostics(){
+
+  const headers =
+    data.length
+      ? Object.keys(data[0])
+      : [];
+
+  $("diagnostics").innerHTML = `
+
+    <div class="grid-3">
+
+      <div>
+        <div class="kpi-label">Records Imported</div>
+        <div class="target-number">
+          ${data.length}
+        </div>
+      </div>
+
+      <div>
+        <div class="kpi-label">Columns Detected</div>
+        <div class="target-number">
+          ${headers.length}
+        </div>
+      </div>
+
+      <div>
+        <div class="kpi-label">Last Sync</div>
+        <div class="target-number" style="font-size:14px;">
+          ${lastSync
+            ? lastSync.toLocaleString("en-IN")
+            : "—"}
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:20px;">
+
+      <strong style="font-size:11px;">
+        Detected columns
+      </strong>
+
+      <div style="margin-top:8px;">
+
+        ${
+          headers.length
+          ? headers.map(h =>
+              `<span class="badge badge-blue"
+                style="margin:3px">
+                ${escapeHTML(h)}
+              </span>`
+            ).join("")
+          : "No columns detected."
+        }
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+function populateFilter(select,values){
+
+  const current =
+    select.value;
+
+  const unique =
+    [...new Set(
+      values
+        .filter(Boolean)
+        .sort()
+    )];
+
+  const first =
+    select.options[0]
+      ? select.options[0].outerHTML
+      : "";
+
+  select.innerHTML =
+    first +
+    unique.map(v =>
+      `<option value="${escapeHTML(v)}">
+        ${escapeHTML(v)}
+      </option>`
+    ).join("");
+
+  if(unique.includes(current)){
+    select.value = current;
+  }
+
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+$("refreshBtn").addEventListener(
+  "click",
+  loadData
+);
+
+$("loadDataBtn").addEventListener(
+  "click",
+  loadData
+);
+
+$("resetUrlBtn").addEventListener(
+  "click",
+  () => {
+
+    $("sheetUrl").value =
+      DEFAULT_SHEET_URL;
+
+  }
+);
+
+$("pipelineSearch").addEventListener(
+  "input",
+  renderPipelineTable
+);
+
+$("pipelineStage").addEventListener(
+  "change",
+  renderPipelineTable
+);
+
+$("pipelineSector").addEventListener(
+  "change",
+  renderPipelineTable
+);
+
+$("prospectSearch").addEventListener(
+  "input",
+  renderProspectTable
+);
+
+$("prospectSector").addEventListener(
+  "change",
+  renderProspectTable
+);
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+const savedURL =
+  localStorage.getItem(
+    "atd_google_sheet_url"
+  );
+
+if(savedURL){
+
+  $("sheetUrl").value =
+    savedURL;
+
+}
+
+renderTargets();
+
+loadData();
+
 </script>
-</body></html>
+
+</body>
+</html>
