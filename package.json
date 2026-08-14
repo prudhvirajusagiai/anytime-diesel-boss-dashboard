@@ -1,0 +1,9 @@
+{
+  "name": "anytime-diesel-boss-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AnyTime Diesel Sales and Business Development Dashboard",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
