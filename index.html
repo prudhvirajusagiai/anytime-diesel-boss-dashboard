@@ -1,2810 +1,3671 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="Anytime Diesel - Business Development Sales Management Dashboard"
-    >
-
-    <meta
-        name="theme-color"
-        content="#f59e0b"
-    >
-
-    <title>Anytime Diesel | BOSS Sales Dashboard</title>
-
-    <!-- Dashboard CSS -->
-    <link
-        rel="stylesheet"
-        href="./css/dashboard.css"
-    >
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Google Font -->
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
-
-    <style>
-        /*
-         * ============================================================
-         * ANYTIME DIESEL BOSS DASHBOARD
-         * Basic fallback styling
-         * ============================================================
-         */
-
-        :root {
-            --primary: #f59e0b;
-            --primary-dark: #d97706;
-            --dark: #111827;
-            --dark-2: #1f2937;
-            --light: #f8fafc;
-            --white: #ffffff;
-            --border: #e5e7eb;
-            --text: #111827;
-            --muted: #6b7280;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --info: #2563eb;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: "Inter", Arial, sans-serif;
-            background: #f3f4f6;
-            color: var(--text);
-        }
-
-        button,
-        input,
-        select {
-            font-family: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        .app {
-            min-height: 100vh;
-        }
-
-        /* =========================================================
-           HEADER
-           ========================================================= */
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <meta
+    name="description"
+    content="Anytime Diesel - Sales Management Dashboard"
+  />
+
+  <title>Anytime Diesel | Sales Dashboard</title>
+
+  <!-- Google Font -->
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+  <!-- Your existing stylesheet -->
+  <link
+    rel="stylesheet"
+    href="css/dashboard.css"
+  />
+
+  <style>
+    /* =========================================================
+       ANYTIME DIESEL SALES DASHBOARD
+       Self-contained fallback styling
+       ========================================================= */
+
+    :root {
+      --primary: #0b4f8a;
+      --primary-dark: #07365f;
+      --primary-light: #eaf4ff;
+
+      --accent: #f5b400;
+      --accent-dark: #d99c00;
+
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #f59e0b;
+
+      --text: #172033;
+      --muted: #6b7280;
+
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --border: #e5e7eb;
+
+      --sidebar-width: 245px;
+      --radius: 12px;
+
+      --shadow:
+        0 2px 10px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    select {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
 
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
 
-            height: 72px;
+    /* =========================================================
+       SIDEBAR
+       ========================================================= */
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
 
-            padding: 0 28px;
+      width: var(--sidebar-width);
 
-            background: #111827;
-            color: white;
+      background:
+        linear-gradient(
+          180deg,
+          #082d4f 0%,
+          #07365f 55%,
+          #062d4f 100%
+        );
 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-        }
+      color: white;
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+      z-index: 1000;
 
-        .brand-mark {
-            width: 42px;
-            height: 42px;
+      overflow-y: auto;
+    }
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    .brand {
+      height: 82px;
 
-            border-radius: 10px;
+      display: flex;
+      align-items: center;
 
-            background: var(--primary);
-            color: #111827;
+      padding: 0 20px;
 
-            font-size: 20px;
-            font-weight: 800;
-        }
+      border-bottom:
+        1px solid rgba(255,255,255,0.12);
+    }
 
-        .brand-text h1 {
-            margin: 0;
+    .brand-mark {
+      width: 42px;
+      height: 42px;
 
-            font-size: 18px;
-            font-weight: 800;
+      border-radius: 10px;
 
-            letter-spacing: -0.3px;
-        }
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-        .brand-text span {
-            display: block;
+      background: white;
+      color: var(--primary);
 
-            margin-top: 2px;
+      font-size: 19px;
+      font-weight: 800;
 
-            color: #d1d5db;
+      margin-right: 12px;
+    }
 
-            font-size: 11px;
-            font-weight: 500;
-        }
+    .brand-text strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
 
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .brand-text span {
+      display: block;
+      font-size: 10px;
+      margin-top: 3px;
+      opacity: .75;
+      letter-spacing: 1px;
+    }
 
-        .top-button {
-            border: 1px solid #374151;
+    .sidebar-section {
+      padding: 22px 12px 8px;
+    }
 
-            background: #1f2937;
-            color: white;
+    .sidebar-title {
+      padding: 0 13px 8px;
 
-            padding: 9px 14px;
+      font-size: 10px;
+      font-weight: 700;
 
-            border-radius: 8px;
+      text-transform: uppercase;
 
-            font-size: 13px;
-            font-weight: 600;
-        }
+      letter-spacing: 1px;
 
-        .top-button:hover {
-            background: #374151;
-        }
+      color: rgba(255,255,255,.48);
+    }
 
-        .status-dot {
-            display: inline-block;
+    .nav {
+      list-style: none;
+    }
 
-            width: 8px;
-            height: 8px;
+    .nav li {
+      margin: 3px 0;
+    }
 
-            margin-right: 7px;
+    .nav button {
+      width: 100%;
 
-            border-radius: 50%;
+      border: 0;
+      background: transparent;
 
-            background: #22c55e;
-        }
+      color: rgba(255,255,255,.75);
 
-        /* =========================================================
-           LAYOUT
-           ========================================================= */
+      padding: 11px 13px;
 
-        .dashboard {
-            display: flex;
-            min-height: calc(100vh - 72px);
-        }
+      border-radius: 8px;
 
-        .sidebar {
-            width: 235px;
-            flex-shrink: 0;
+      display: flex;
+      align-items: center;
 
-            background: white;
+      gap: 12px;
 
-            border-right: 1px solid var(--border);
+      font-size: 13px;
 
-            padding: 22px 14px;
-        }
+      text-align: left;
 
-        .sidebar-title {
-            padding: 0 12px 10px;
+      transition: .2s ease;
+    }
 
-            color: var(--muted);
+    .nav button i {
+      width: 18px;
+      text-align: center;
+    }
 
-            font-size: 11px;
-            font-weight: 800;
+    .nav button:hover {
+      background: rgba(255,255,255,.09);
+      color: white;
+    }
 
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
+    .nav button.active {
+      background: rgba(255,255,255,.13);
+      color: white;
+      font-weight: 600;
+      box-shadow:
+        inset 3px 0 0 var(--accent);
+    }
 
-        .nav-item {
-            width: 100%;
+    /* =========================================================
+       MAIN
+       ========================================================= */
 
-            display: flex;
-            align-items: center;
-            gap: 11px;
+    .main {
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      min-height: 100vh;
+    }
 
-            padding: 11px 12px;
+    .topbar {
+      height: 72px;
 
-            margin-bottom: 4px;
+      background: white;
 
-            border: 0;
-            border-radius: 8px;
+      border-bottom:
+        1px solid var(--border);
 
-            background: transparent;
-            color: #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
 
-            text-align: left;
+      padding: 0 28px;
 
-            font-size: 13px;
-            font-weight: 600;
-        }
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-        .nav-item:hover {
-            background: #f3f4f6;
-        }
+    .page-heading h1 {
+      font-size: 19px;
+      font-weight: 800;
+    }
 
-        .nav-item.active {
-            background: #fff7ed;
-            color: #b45309;
-        }
+    .page-heading p {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+    }
 
-        .nav-icon {
-            width: 20px;
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-            text-align: center;
+    .date-badge {
+      border: 1px solid var(--border);
+      background: #fff;
 
-            font-size: 15px;
-        }
+      border-radius: 8px;
 
-        .main {
-            flex: 1;
+      padding: 9px 12px;
 
-            min-width: 0;
+      font-size: 11px;
+      color: var(--muted);
+    }
 
-            padding: 28px;
-        }
+    .refresh-btn {
+      border: 0;
 
-        /* =========================================================
-           PAGE HEADER
-           ========================================================= */
+      background: var(--primary);
+      color: white;
 
-        .page-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
+      padding: 10px 14px;
 
-            gap: 20px;
+      border-radius: 8px;
 
-            margin-bottom: 24px;
-        }
+      font-size: 12px;
+      font-weight: 600;
+    }
 
-        .page-header h2 {
-            margin: 0;
+    .refresh-btn:hover {
+      background: var(--primary-dark);
+    }
 
-            font-size: 25px;
-            font-weight: 800;
+    .content {
+      padding: 26px;
+    }
 
-            letter-spacing: -0.6px;
-        }
+    /* =========================================================
+       STATUS
+       ========================================================= */
 
-        .page-header p {
-            margin: 6px 0 0;
+    .data-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
 
-            color: var(--muted);
+      padding: 10px 13px;
 
-            font-size: 13px;
-        }
+      background: white;
 
-        .header-actions {
-            display: flex;
-            gap: 9px;
-        }
+      border: 1px solid var(--border);
 
-        .primary-button {
-            border: 0;
+      border-radius: 9px;
 
-            background: var(--primary);
-            color: #111827;
+      margin-bottom: 18px;
 
-            padding: 10px 15px;
+      font-size: 11px;
+    }
 
-            border-radius: 8px;
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-            font-size: 13px;
-            font-weight: 800;
-        }
+    .status-dot {
+      width: 8px;
+      height: 8px;
 
-        .primary-button:hover {
-            background: var(--primary-dark);
-            color: white;
-        }
+      border-radius: 50%;
 
-        .secondary-button {
-            border: 1px solid var(--border);
+      background: var(--warning);
+    }
 
-            background: white;
-            color: #374151;
+    .status-dot.online {
+      background: var(--success);
+    }
 
-            padding: 10px 15px;
+    .status-dot.error {
+      background: var(--danger);
+    }
 
-            border-radius: 8px;
+    /* =========================================================
+       KPI CARDS
+       ========================================================= */
 
-            font-size: 13px;
-            font-weight: 700;
-        }
+    .kpi-grid {
+      display: grid;
 
-        /* =========================================================
-           KPI CARDS
-           ========================================================= */
+      grid-template-columns:
+        repeat(6, minmax(0, 1fr));
 
-        .kpi-grid {
-            display: grid;
+      gap: 13px;
 
-            grid-template-columns:
-                repeat(6, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
 
-            gap: 14px;
+    .kpi-card {
+      background: white;
 
-            margin-bottom: 22px;
-        }
+      border:
+        1px solid var(--border);
 
-        .kpi-card {
-            min-width: 0;
+      border-radius: var(--radius);
 
-            background: white;
+      padding: 17px;
 
-            border: 1px solid var(--border);
+      box-shadow: var(--shadow);
 
-            border-radius: 12px;
+      min-height: 125px;
 
-            padding: 17px;
+      position: relative;
 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
+      overflow: hidden;
+    }
 
-        .kpi-label {
-            color: var(--muted);
+    .kpi-card::after {
+      content: "";
 
-            font-size: 11px;
-            font-weight: 700;
+      position: absolute;
 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+      right: -25px;
+      bottom: -25px;
 
-        .kpi-value {
-            margin-top: 9px;
+      width: 80px;
+      height: 80px;
 
-            font-size: 23px;
-            font-weight: 800;
+      background: var(--primary-light);
 
-            letter-spacing: -0.5px;
-        }
+      border-radius: 50%;
+    }
 
-        .kpi-sub {
-            margin-top: 5px;
+    .kpi-icon {
+      width: 32px;
+      height: 32px;
 
-            color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-            font-size: 11px;
-        }
+      border-radius: 8px;
 
-        /* =========================================================
-           CARDS
-           ========================================================= */
+      background: var(--primary-light);
+      color: var(--primary);
 
-        .card {
-            background: white;
+      font-size: 13px;
 
-            border: 1px solid var(--border);
+      margin-bottom: 13px;
+    }
 
-            border-radius: 12px;
+    .kpi-label {
+      color: var(--muted);
 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
+      font-size: 10px;
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+      font-weight: 600;
 
-            padding: 17px 18px;
+      text-transform: uppercase;
 
-            border-bottom: 1px solid var(--border);
-        }
+      letter-spacing: .5px;
+    }
 
-        .card-header h3 {
-            margin: 0;
+    .kpi-value {
+      margin-top: 6px;
 
-            font-size: 14px;
-            font-weight: 800;
-        }
+      font-size: 22px;
 
-        .card-header span {
-            color: var(--muted);
+      font-weight: 800;
 
-            font-size: 11px;
-        }
+      color: var(--text);
+    }
 
-        .card-body {
-            padding: 18px;
-        }
+    .kpi-sub {
+      margin-top: 5px;
 
-        /* =========================================================
-           CHART GRID
-           ========================================================= */
+      color: var(--muted);
 
-        .chart-grid {
-            display: grid;
+      font-size: 10px;
+    }
 
-            grid-template-columns:
-                minmax(0, 1.55fr)
-                minmax(300px, 1fr);
+    /* =========================================================
+       PANELS
+       ========================================================= */
 
-            gap: 18px;
+    .grid-2 {
+      display: grid;
 
-            margin-bottom: 18px;
-        }
+      grid-template-columns:
+        1fr 1fr;
 
-        .chart-container {
-            position: relative;
+      gap: 18px;
 
-            height: 300px;
-        }
+      margin-bottom: 18px;
+    }
 
-        /* =========================================================
-           OPPORTUNITY TABLE
-           ========================================================= */
+    .panel {
+      background: white;
 
-        .table-card {
-            margin-bottom: 18px;
-        }
+      border:
+        1px solid var(--border);
 
-        .table-wrapper {
-            width: 100%;
+      border-radius: var(--radius);
 
-            overflow-x: auto;
-        }
+      box-shadow: var(--shadow);
 
-        table {
-            width: 100%;
+      overflow: hidden;
+    }
 
-            border-collapse: collapse;
+    .panel-header {
+      padding: 15px 17px;
 
-            min-width: 760px;
-        }
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
 
-        th {
-            padding: 12px 18px;
+      border-bottom:
+        1px solid var(--border);
+    }
 
-            background: #f9fafb;
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
 
-            border-bottom: 1px solid var(--border);
+    .panel-subtitle {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
 
-            color: #6b7280;
+    .panel-body {
+      padding: 17px;
+    }
 
-            text-align: left;
+    /* =========================================================
+       CHART
+       ========================================================= */
 
-            font-size: 10px;
-            font-weight: 800;
+    .chart {
+      height: 250px;
 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+      display: flex;
+      align-items: flex-end;
 
-        td {
-            padding: 13px 18px;
+      gap: 16px;
 
-            border-bottom: 1px solid #f0f1f3;
+      padding:
+        15px 10px 5px;
 
-            font-size: 12px;
-        }
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
 
-        tbody tr:hover {
-            background: #fffbeb;
-        }
+    .chart-column {
+      flex: 1;
 
-        .stage {
-            display: inline-flex;
+      height: 100%;
 
-            padding: 5px 9px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
 
-            border-radius: 999px;
+      gap: 7px;
+    }
 
-            background: #fef3c7;
-            color: #92400e;
+    .bar {
+      width: 75%;
 
-            font-size: 10px;
-            font-weight: 800;
-        }
+      max-width: 42px;
 
-        .probability {
-            font-weight: 800;
-        }
+      min-height: 5px;
 
-        /* =========================================================
-           DATA SOURCE
-           ========================================================= */
+      border-radius:
+        5px 5px 0 0;
 
-        .data-source {
-            margin-top: 18px;
-        }
+      background:
+        linear-gradient(
+          180deg,
+          #0b6ebc,
+          #0b4f8a
+        );
 
-        .source-content {
-            padding: 18px;
-        }
+      transition:
+        height .5s ease;
+    }
 
-        .source-description {
-            margin: 0 0 12px;
+    .bar-label {
+      font-size: 9px;
+      color: var(--muted);
+    }
 
-            color: var(--muted);
+    .bar-value {
+      font-size: 9px;
+      font-weight: 700;
+    }
 
-            font-size: 12px;
-            line-height: 1.6;
-        }
+    /* =========================================================
+       STAGE
+       ========================================================= */
 
-        .source-input {
-            width: 100%;
+    .stage-row {
+      margin-bottom: 15px;
+    }
 
-            min-height: 82px;
+    .stage-top {
+      display: flex;
+      justify-content: space-between;
 
-            resize: vertical;
+      font-size: 11px;
 
-            padding: 12px;
+      margin-bottom: 6px;
+    }
 
-            border: 1px solid var(--border);
+    .stage-name {
+      font-weight: 600;
+    }
 
-            border-radius: 8px;
+    .stage-count {
+      color: var(--muted);
+    }
 
-            background: #f9fafb;
+    .progress {
+      width: 100%;
+      height: 7px;
 
-            color: #374151;
+      background: #edf0f4;
 
-            font-family: monospace;
-            font-size: 11px;
+      border-radius: 10px;
 
-            outline: none;
-        }
+      overflow: hidden;
+    }
 
-        .source-input:focus {
-            border-color: var(--primary);
-            background: white;
-        }
+    .progress-bar {
+      height: 100%;
 
-        .source-actions {
-            display: flex;
-            align-items: center;
+      background: var(--primary);
 
-            gap: 10px;
+      border-radius: inherit;
+    }
 
-            margin-top: 12px;
-        }
+    /* =========================================================
+       TABLE
+       ========================================================= */
 
-        /* =========================================================
-           STATUS
-           ========================================================= */
+    .table-wrapper {
+      overflow-x: auto;
+    }
 
-        .load-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+    table {
+      width: 100%;
 
-            min-height: 35px;
+      border-collapse: collapse;
 
-            color: var(--muted);
+      font-size: 11px;
+    }
 
-            font-size: 11px;
-        }
+    th {
+      text-align: left;
 
-        .spinner {
-            width: 14px;
-            height: 14px;
+      background: #f8fafc;
 
-            border: 2px solid #e5e7eb;
-            border-top-color: var(--primary);
+      color: var(--muted);
 
-            border-radius: 50%;
+      font-size: 9px;
 
-            animation: spin 0.8s linear infinite;
-        }
+      text-transform: uppercase;
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+      letter-spacing: .5px;
 
-        /* =========================================================
-           EMPTY STATE
-           ========================================================= */
+      padding: 11px 13px;
 
-        .empty-state {
-            padding: 35px 20px;
+      border-bottom:
+        1px solid var(--border);
+    }
 
-            text-align: center;
+    td {
+      padding: 12px 13px;
 
-            color: var(--muted);
-        }
+      border-bottom:
+        1px solid #f0f1f3;
 
-        .empty-state strong {
-            display: block;
+      vertical-align: middle;
+    }
 
-            margin-bottom: 6px;
+    tbody tr:hover {
+      background: #fafcff;
+    }
 
-            color: #374151;
-        }
+    .company-name {
+      font-weight: 700;
+      color: var(--text);
+    }
 
-        /* =========================================================
-           FOOTER
-           ========================================================= */
+    .sector {
+      color: var(--muted);
+    }
 
-        .footer {
-            padding: 22px 0 8px;
+    .amount {
+      font-weight: 700;
+      white-space: nowrap;
+    }
 
-            color: #9ca3af;
+    .badge {
+      display: inline-flex;
 
-            text-align: center;
+      align-items: center;
 
-            font-size: 10px;
-        }
+      padding: 4px 8px;
 
-        /* =========================================================
-           MOBILE
-           ========================================================= */
+      border-radius: 20px;
 
-        @media (max-width: 1250px) {
-            .kpi-grid {
-                grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
-            }
-        }
+      font-size: 9px;
 
-        @media (max-width: 900px) {
+      font-weight: 700;
+    }
 
-            .sidebar {
-                display: none;
-            }
+    .badge-proposal {
+      background: #fff4d6;
+      color: #9a6b00;
+    }
 
-            .main {
-                padding: 18px;
-            }
+    .badge-negotiation {
+      background: #eaf4ff;
+      color: #075a9c;
+    }
 
-            .chart-grid {
-                grid-template-columns: 1fr;
-            }
+    .badge-qualified {
+      background: #eaf8ef;
+      color: #17713a;
+    }
 
-            .page-header {
-                flex-direction: column;
-            }
-        }
+    .badge-new {
+      background: #f0f1f3;
+      color: #555;
+    }
 
-        @media (max-width: 600px) {
+    /* =========================================================
+       FILTERS
+       ========================================================= */
 
-            .topbar {
-                height: 62px;
+    .filters {
+      display: flex;
 
-                padding: 0 15px;
-            }
+      gap: 9px;
 
-            .brand-text span {
-                display: none;
-            }
+      flex-wrap: wrap;
+    }
 
-            .top-button {
-                padding: 8px;
-            }
+    .filter {
+      padding: 8px 10px;
 
-            .top-button .button-text {
-                display: none;
-            }
+      border:
+        1px solid var(--border);
 
-            .kpi-grid {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
+      border-radius: 7px;
 
-            .main {
-                padding: 14px;
-            }
+      background: white;
 
-            .kpi-value {
-                font-size: 19px;
-            }
+      font-size: 10px;
 
-            .header-actions {
-                width: 100%;
-            }
+      color: var(--muted);
+    }
 
-            .header-actions button {
-                flex: 1;
-            }
-        }
-    </style>
+    /* =========================================================
+       GOOGLE SHEETS SETUP
+       ========================================================= */
+
+    .setup {
+      margin-top: 18px;
+
+      background: white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: var(--radius);
+
+      box-shadow: var(--shadow);
+
+      padding: 18px;
+    }
+
+    .setup h3 {
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .setup p {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
+      margin-bottom: 13px;
+    }
+
+    .url-box {
+      width: 100%;
+
+      min-height: 74px;
+
+      resize: vertical;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 8px;
+
+      padding: 11px;
+
+      font-size: 10px;
+
+      outline: none;
+
+      background: #fafafa;
+    }
+
+    .url-box:focus {
+      border-color: var(--primary);
+    }
+
+    .setup-actions {
+      margin-top: 10px;
+
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      border: 0;
+
+      padding: 9px 13px;
+
+      border-radius: 7px;
+
+      font-size: 10px;
+
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #f1f3f5;
+      color: #374151;
+    }
+
+    /* =========================================================
+       EMPTY / LOADING
+       ========================================================= */
+
+    .empty {
+      text-align: center;
+
+      padding: 35px 20px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+    }
+
+    .loader {
+      width: 18px;
+      height: 18px;
+
+      border:
+        2px solid #dbe5ee;
+
+      border-top-color:
+        var(--primary);
+
+      border-radius: 50%;
+
+      animation:
+        spin .8s linear infinite;
+
+      display: inline-block;
+
+      margin-right: 7px;
+
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 1200px) {
+
+      .kpi-grid {
+        grid-template-columns:
+          repeat(3, 1fr);
+      }
+
+    }
+
+    @media (max-width: 900px) {
+
+      .sidebar {
+        width: 72px;
+      }
+
+      .brand {
+        padding: 0;
+        justify-content: center;
+      }
+
+      .brand-text,
+      .sidebar-title,
+      .nav button span {
+        display: none;
+      }
+
+      .nav button {
+        justify-content: center;
+      }
+
+      .main {
+        margin-left: 72px;
+        width: calc(100% - 72px);
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+    @media (max-width: 650px) {
+
+      .topbar {
+        height: auto;
+        min-height: 70px;
+
+        padding: 14px;
+
+        gap: 10px;
+
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .top-actions {
+        width: 100%;
+      }
+
+      .date-badge {
+        flex: 1;
+      }
+
+      .content {
+        padding: 14px;
+      }
+
+      .kpi-grid {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .kpi-value {
+        font-size: 18px;
+      }
+
+    }
+
+  </style>
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- =========================================================
-         TOP BAR
-         ========================================================= -->
+  <!-- =======================================================
+       SIDEBAR
+       ======================================================= -->
+
+  <aside class="sidebar">
+
+    <div class="brand">
+
+      <div class="brand-mark">
+        <i class="fa-solid fa-droplet"></i>
+      </div>
+
+      <div class="brand-text">
+        <strong>ANYTIME DIESEL</strong>
+        <span>SALES MANAGEMENT</span>
+      </div>
+
+    </div>
+
+    <div class="sidebar-section">
+
+      <div class="sidebar-title">
+        Main
+      </div>
+
+      <ul class="nav">
+
+        <li>
+          <button
+            class="active"
+            onclick="showSection('overview', this)"
+          >
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Executive Overview</span>
+          </button>
+        </li>
+
+        <li>
+          <button
+            onclick="showSection('pipeline', this)"
+          >
+            <i class="fa-solid fa-filter-circle-dollar"></i>
+            <span>Sales Pipeline</span>
+          </button>
+        </li>
+
+        <li>
+          <button
+            onclick="showSection('opportunities', this)"
+          >
+            <i class="fa-solid fa-bullseye"></i>
+            <span>Opportunities</span>
+          </button>
+        </li>
+
+        <li>
+          <button
+            onclick="showSection('customers', this)"
+          >
+            <i class="fa-solid fa-building"></i>
+            <span>Customers</span>
+          </button>
+        </li>
+
+        <li>
+          <button
+            onclick="showSection('analytics', this)"
+          >
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Analytics</span>
+          </button>
+        </li>
+
+      </ul>
+
+    </div>
+
+    <div class="sidebar-section">
+
+      <div class="sidebar-title">
+        Management
+      </div>
+
+      <ul class="nav">
+
+        <li>
+          <button
+            onclick="showSection('targets', this)"
+          >
+            <i class="fa-solid fa-bullseye"></i>
+            <span>Targets</span>
+          </button>
+        </li>
+
+        <li>
+          <button
+            onclick="showSection('reports', this)"
+          >
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Reports</span>
+          </button>
+        </li>
+
+        <li>
+          <button
+            onclick="showSection('settings', this)"
+          >
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </button>
+        </li>
+
+      </ul>
+
+    </div>
+
+    <div class="sidebar-section">
+
+      <div class="sidebar-title">
+        System
+      </div>
+
+      <ul class="nav">
+
+        <li>
+          <button
+            onclick="loadData()"
+          >
+            <i class="fa-solid fa-rotate"></i>
+            <span>Refresh Data</span>
+          </button>
+        </li>
+
+      </ul>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =======================================================
+       MAIN
+       ======================================================= -->
+
+  <main class="main">
 
     <header class="topbar">
 
-        <div class="brand">
+      <div class="page-heading">
 
-            <div class="brand-mark">
-                AD
-            </div>
+        <h1 id="pageTitle">
+          Executive Overview
+        </h1>
 
-            <div class="brand-text">
-                <h1>ANYTIME DIESEL</h1>
-                <span>BOSS — Business Development & Sales Dashboard</span>
-            </div>
+        <p id="pageSubtitle">
+          Anytime Diesel — Hyderabad Sales Management
+        </p>
 
+      </div>
+
+      <div class="top-actions">
+
+        <div
+          class="date-badge"
+          id="currentDate"
+        >
+          Loading date...
         </div>
 
-        <div class="top-actions">
+        <button
+          class="refresh-btn"
+          onclick="loadData()"
+        >
+          <i class="fa-solid fa-rotate"></i>
+          Refresh
+        </button>
 
-            <button
-                class="top-button"
-                id="connectionStatus"
-                type="button"
-            >
-                <span class="status-dot"></span>
-                <span class="button-text">Dashboard Online</span>
-            </button>
-
-            <button
-                class="top-button"
-                type="button"
-                onclick="window.open('https://anytimediesel.com/', '_blank')"
-            >
-                <span class="button-text">AnytimeDiesel.com</span>
-                ↗
-            </button>
-
-        </div>
+      </div>
 
     </header>
 
 
-    <div class="dashboard">
+    <div class="content">
 
-        <!-- =====================================================
-             SIDEBAR
-             ===================================================== -->
+      <!-- DATA STATUS -->
 
-        <aside class="sidebar">
+      <div class="data-status">
 
-            <div class="sidebar-title">
-                Sales Management
+        <div class="status-left">
+
+          <span
+            class="status-dot"
+            id="statusDot"
+          ></span>
+
+          <span id="statusText">
+            Connecting to Google Sheets...
+          </span>
+
+        </div>
+
+        <span id="lastUpdated">
+          —
+        </span>
+
+      </div>
+
+
+      <!-- =====================================================
+           OVERVIEW
+           ===================================================== -->
+
+      <section
+        id="section-overview"
+        class="dashboard-section"
+      >
+
+        <!-- KPI CARDS -->
+
+        <div class="kpi-grid">
+
+          <div class="kpi-card">
+
+            <div class="kpi-icon">
+              <i class="fa-solid fa-indian-rupee-sign"></i>
             </div>
 
-            <button
-                class="nav-item active"
-                type="button"
-                onclick="scrollToSection('overview')"
-            >
-                <span class="nav-icon">▦</span>
-                Overview
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                onclick="scrollToSection('pipeline')"
-            >
-                <span class="nav-icon">◈</span>
-                Sales Pipeline
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                onclick="scrollToSection('opportunities')"
-            >
-                <span class="nav-icon">◎</span>
-                Opportunities
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                onclick="scrollToSection('dataSource')"
-            >
-                <span class="nav-icon">▤</span>
-                Data Source
-            </button>
+            <div class="kpi-label">
+              Pipeline Value
+            </div>
 
             <div
-                class="sidebar-title"
-                style="margin-top:24px;"
+              class="kpi-value"
+              id="pipelineValue"
             >
-                Quick Links
+              ₹0
+            </div>
+
+            <div class="kpi-sub">
+              Total opportunity value
+            </div>
+
+          </div>
+
+
+          <div class="kpi-card">
+
+            <div class="kpi-icon">
+              <i class="fa-solid fa-handshake"></i>
+            </div>
+
+            <div class="kpi-label">
+              Open Opportunities
+            </div>
+
+            <div
+              class="kpi-value"
+              id="openOpportunities"
+            >
+              0
+            </div>
+
+            <div class="kpi-sub">
+              Active sales opportunities
+            </div>
+
+          </div>
+
+
+          <div class="kpi-card">
+
+            <div class="kpi-icon">
+              <i class="fa-solid fa-building"></i>
+            </div>
+
+            <div class="kpi-label">
+              Accounts
+            </div>
+
+            <div
+              class="kpi-value"
+              id="accountCount"
+            >
+              0
+            </div>
+
+            <div class="kpi-sub">
+              Companies in pipeline
+            </div>
+
+          </div>
+
+
+          <div class="kpi-card">
+
+            <div class="kpi-icon">
+              <i class="fa-solid fa-percent"></i>
+            </div>
+
+            <div class="kpi-label">
+              Avg. Probability
+            </div>
+
+            <div
+              class="kpi-value"
+              id="averageProbability"
+            >
+              0%
+            </div>
+
+            <div class="kpi-sub">
+              Weighted sales confidence
+            </div>
+
+          </div>
+
+
+          <div class="kpi-card">
+
+            <div class="kpi-icon">
+              <i class="fa-solid fa-fire"></i>
+            </div>
+
+            <div class="kpi-label">
+              High Priority
+            </div>
+
+            <div
+              class="kpi-value"
+              id="highPriority"
+            >
+              0
+            </div>
+
+            <div class="kpi-sub">
+              Opportunities ≥ 70%
+            </div>
+
+          </div>
+
+
+          <div class="kpi-card">
+
+            <div class="kpi-icon">
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+
+            <div class="kpi-label">
+              Weighted Value
+            </div>
+
+            <div
+              class="kpi-value"
+              id="weightedValue"
+            >
+              ₹0
+            </div>
+
+            <div class="kpi-sub">
+              Value × probability
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- CHARTS -->
+
+        <div class="grid-2">
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <div class="panel-title">
+                  Pipeline by Month
+                </div>
+
+                <div class="panel-subtitle">
+                  Opportunity value
+                </div>
+
+              </div>
+
+            </div>
+
+            <div
+              class="panel-body"
+              id="monthlyChart"
+            >
+
+              <div class="empty">
+                <span class="loader"></span>
+                Loading chart...
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <div class="panel-title">
+                  Pipeline by Stage
+                </div>
+
+                <div class="panel-subtitle">
+                  Current sales funnel
+                </div>
+
+              </div>
+
+            </div>
+
+            <div
+              class="panel-body"
+              id="stageChart"
+            >
+
+              <div class="empty">
+                <span class="loader"></span>
+                Loading stages...
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- TOP OPPORTUNITIES -->
+
+        <div class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <div class="panel-title">
+                Top Opportunities
+              </div>
+
+              <div class="panel-subtitle">
+                Highest-value active opportunities
+              </div>
+
             </div>
 
             <button
-                class="nav-item"
-                type="button"
-                onclick="window.open('https://anytimediesel.com/', '_blank')"
+              class="btn btn-secondary"
+              onclick="showSectionById('opportunities')"
             >
-                <span class="nav-icon">↗</span>
-                Company Website
+              View All
             </button>
 
-        </aside>
+          </div>
+
+          <div
+            class="table-wrapper"
+            id="topOpportunities"
+          >
+
+            <div class="empty">
+              <span class="loader"></span>
+              Loading opportunities...
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
 
 
-        <!-- =====================================================
-             MAIN
-             ===================================================== -->
+      <!-- =====================================================
+           PIPELINE
+           ===================================================== -->
 
-        <main class="main">
+      <section
+        id="section-pipeline"
+        class="dashboard-section"
+        style="display:none"
+      >
 
-            <!-- PAGE HEADER -->
+        <div class="panel">
 
-            <section
-                id="overview"
-                class="page-header"
+          <div class="panel-header">
+
+            <div>
+
+              <div class="panel-title">
+                Sales Pipeline
+              </div>
+
+              <div class="panel-subtitle">
+                Complete opportunity pipeline
+              </div>
+
+            </div>
+
+          </div>
+
+          <div
+            class="table-wrapper"
+            id="pipelineTable"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           OPPORTUNITIES
+           ===================================================== -->
+
+      <section
+        id="section-opportunities"
+        class="dashboard-section"
+        style="display:none"
+      >
+
+        <div class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <div class="panel-title">
+                Opportunities
+              </div>
+
+              <div class="panel-subtitle">
+                All sales opportunities
+              </div>
+
+            </div>
+
+          </div>
+
+          <div
+            class="table-wrapper"
+            id="opportunitiesTable"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           CUSTOMERS
+           ===================================================== -->
+
+      <section
+        id="section-customers"
+        class="dashboard-section"
+        style="display:none"
+      >
+
+        <div class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <div class="panel-title">
+                Customer Accounts
+              </div>
+
+              <div class="panel-subtitle">
+                Companies currently tracked
+              </div>
+
+            </div>
+
+          </div>
+
+          <div
+            class="table-wrapper"
+            id="customersTable"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           ANALYTICS
+           ===================================================== -->
+
+      <section
+        id="section-analytics"
+        class="dashboard-section"
+        style="display:none"
+      >
+
+        <div class="grid-2">
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div class="panel-title">
+                Sales Analytics
+              </div>
+
+            </div>
+
+            <div class="panel-body">
+
+              <div class="stage-row">
+
+                <div class="stage-top">
+                  <span class="stage-name">
+                    Pipeline Coverage
+                  </span>
+
+                  <span
+                    class="stage-count"
+                    id="analyticsPipeline"
+                  >
+                    ₹0
+                  </span>
+                </div>
+
+                <div class="progress">
+                  <div
+                    class="progress-bar"
+                    style="width:100%"
+                  ></div>
+                </div>
+
+              </div>
+
+
+              <div class="stage-row">
+
+                <div class="stage-top">
+                  <span class="stage-name">
+                    Weighted Pipeline
+                  </span>
+
+                  <span
+                    class="stage-count"
+                    id="analyticsWeighted"
+                  >
+                    ₹0
+                  </span>
+                </div>
+
+                <div class="progress">
+                  <div
+                    class="progress-bar"
+                    style="width:75%"
+                  ></div>
+                </div>
+
+              </div>
+
+
+              <div class="stage-row">
+
+                <div class="stage-top">
+                  <span class="stage-name">
+                    High Probability
+                  </span>
+
+                  <span
+                    class="stage-count"
+                    id="analyticsHigh"
+                  >
+                    0
+                  </span>
+                </div>
+
+                <div class="progress">
+                  <div
+                    class="progress-bar"
+                    style="width:50%"
+                  ></div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div class="panel-title">
+                Management Snapshot
+              </div>
+
+            </div>
+
+            <div class="panel-body">
+
+              <table>
+
+                <tbody>
+
+                  <tr>
+                    <td>Total Pipeline</td>
+                    <td
+                      class="amount"
+                      id="snapshotPipeline"
+                    >
+                      ₹0
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>Weighted Pipeline</td>
+                    <td
+                      class="amount"
+                      id="snapshotWeighted"
+                    >
+                      ₹0
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>Opportunities</td>
+                    <td
+                      class="amount"
+                      id="snapshotOpportunities"
+                    >
+                      0
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>Accounts</td>
+                    <td
+                      class="amount"
+                      id="snapshotAccounts"
+                    >
+                      0
+                    </td>
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           TARGETS
+           ===================================================== -->
+
+      <section
+        id="section-targets"
+        class="dashboard-section"
+        style="display:none"
+      >
+
+        <div class="panel">
+
+          <div class="panel-header">
+
+            <div class="panel-title">
+              Sales Targets
+            </div>
+
+          </div>
+
+          <div class="panel-body">
+
+            <div class="empty">
+
+              Target management can be connected
+              to a separate Google Sheets tab.
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           REPORTS
+           ===================================================== -->
+
+      <section
+        id="section-reports"
+        class="dashboard-section"
+        style="display:none"
+      >
+
+        <div class="panel">
+
+          <div class="panel-header">
+
+            <div class="panel-title">
+              Reports
+            </div>
+
+          </div>
+
+          <div class="panel-body">
+
+            <div class="empty">
+
+              Reporting module ready for future
+              PDF / Excel export integration.
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           SETTINGS
+           ===================================================== -->
+
+      <section
+        id="section-settings"
+        class="dashboard-section"
+        style="display:none"
+      >
+
+        <div class="setup">
+
+          <h3>
+            Google Sheets / Data Source Setup
+          </h3>
+
+          <p>
+            The dashboard reads management-safe sales
+            information from your published Google Sheets CSV.
+            Do not publish confidential customer information.
+          </p>
+
+          <textarea
+            id="sheetsUrl"
+            class="url-box"
+            spellcheck="false"
+          ></textarea>
+
+          <div class="setup-actions">
+
+            <button
+              class="btn btn-primary"
+              onclick="saveAndReload()"
             >
+              Save & Refresh Data
+            </button>
 
-                <div>
-
-                    <h2>Sales Overview</h2>
-
-                    <p>
-                        Monitor opportunities, pipeline value,
-                        sales stages and business development activity.
-                    </p>
-
-                </div>
-
-                <div class="header-actions">
-
-                    <button
-                        class="secondary-button"
-                        type="button"
-                        onclick="loadSalesData()"
-                    >
-                        ↻ Refresh
-                    </button>
-
-                    <button
-                        class="primary-button"
-                        type="button"
-                        onclick="scrollToSection('dataSource')"
-                    >
-                        Google Sheets
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 KPI CARDS
-                 ================================================= -->
-
-            <section
-                id="pipeline"
-                class="kpi-grid"
+            <button
+              class="btn btn-secondary"
+              onclick="resetUrl()"
             >
+              Reset URL
+            </button>
 
-                <div class="kpi-card">
+          </div>
 
-                    <div class="kpi-label">
-                        Total Pipeline
-                    </div>
+        </div>
 
-                    <div
-                        class="kpi-value"
-                        id="totalPipeline"
-                    >
-                        ₹0
-                    </div>
-
-                    <div class="kpi-sub">
-                        All active opportunities
-                    </div>
-
-                </div>
-
-
-                <div class="kpi-card">
-
-                    <div class="kpi-label">
-                        Weighted Pipeline
-                    </div>
-
-                    <div
-                        class="kpi-value"
-                        id="weightedPipeline"
-                    >
-                        ₹0
-                    </div>
-
-                    <div class="kpi-sub">
-                        Probability adjusted
-                    </div>
-
-                </div>
-
-
-                <div class="kpi-card">
-
-                    <div class="kpi-label">
-                        Opportunities
-                    </div>
-
-                    <div
-                        class="kpi-value"
-                        id="opportunityCount"
-                    >
-                        0
-                    </div>
-
-                    <div class="kpi-sub">
-                        Active opportunities
-                    </div>
-
-                </div>
-
-
-                <div class="kpi-card">
-
-                    <div class="kpi-label">
-                        Average Deal
-                    </div>
-
-                    <div
-                        class="kpi-value"
-                        id="averageDeal"
-                    >
-                        ₹0
-                    </div>
-
-                    <div class="kpi-sub">
-                        Average opportunity value
-                    </div>
-
-                </div>
-
-
-                <div class="kpi-card">
-
-                    <div class="kpi-label">
-                        Win Probability
-                    </div>
-
-                    <div
-                        class="kpi-value"
-                        id="averageProbability"
-                    >
-                        0%
-                    </div>
-
-                    <div class="kpi-sub">
-                        Average probability
-                    </div>
-
-                </div>
-
-
-                <div class="kpi-card">
-
-                    <div class="kpi-label">
-                        Latest Month
-                    </div>
-
-                    <div
-                        class="kpi-value"
-                        id="latestMonth"
-                    >
-                        —
-                    </div>
-
-                    <div class="kpi-sub">
-                        Latest pipeline period
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 CHARTS
-                 ================================================= -->
-
-            <section class="chart-grid">
-
-                <div class="card">
-
-                    <div class="card-header">
-
-                        <h3>
-                            Pipeline by Company
-                        </h3>
-
-                        <span>
-                            Opportunity value
-                        </span>
-
-                    </div>
-
-                    <div class="card-body">
-
-                        <div class="chart-container">
-
-                            <canvas
-                                id="pipelineChart"
-                            ></canvas>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-header">
-
-                        <h3>
-                            Pipeline by Stage
-                        </h3>
-
-                        <span>
-                            Distribution
-                        </span>
-
-                    </div>
-
-                    <div class="card-body">
-
-                        <div class="chart-container">
-
-                            <canvas
-                                id="stageChart"
-                            ></canvas>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 TOP OPPORTUNITIES
-                 ================================================= -->
-
-            <section
-                id="opportunities"
-                class="card table-card"
-            >
-
-                <div class="card-header">
-
-                    <h3>
-                        Top Opportunities
-                    </h3>
-
-                    <span id="opportunitySummary">
-                        Waiting for data
-                    </span>
-
-                </div>
-
-
-                <div
-                    class="table-wrapper"
-                    id="opportunityTableContainer"
-                >
-
-                    <div class="empty-state">
-
-                        <strong>
-                            Loading sales data...
-                        </strong>
-
-                        Please wait while the dashboard connects
-                        to Google Sheets.
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 DATA SOURCE
-                 ================================================= -->
-
-            <section
-                id="dataSource"
-                class="card data-source"
-            >
-
-                <div class="card-header">
-
-                    <h3>
-                        Google Sheets / Data Source Setup
-                    </h3>
-
-                    <span>
-                        Published CSV
-                    </span>
-
-                </div>
-
-
-                <div class="source-content">
-
-                    <p class="source-description">
-
-                        The dashboard reads management-safe sales
-                        information from your published Google Sheets
-                        CSV. Recommended columns are:
-
-                        <strong>
-                            company, sector, value, stage,
-                            probability, owner, month
-                        </strong>
-
-                    </p>
-
-
-                    <textarea
-                        id="googleSheetsUrl"
-                        class="source-input"
-                        spellcheck="false"
-                    >https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv</textarea>
-
-
-                    <div class="source-actions">
-
-                        <button
-                            class="primary-button"
-                            type="button"
-                            onclick="loadSalesData()"
-                        >
-                            Load / Refresh Data
-                        </button>
-
-                        <div
-                            class="load-status"
-                            id="loadStatus"
-                        >
-                            Ready
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- FOOTER -->
-
-            <footer class="footer">
-
-                Anytime Diesel ©
-                <span id="currentYear"></span>
-                |
-                Business Development & Sales Dashboard
-
-            </footer>
-
-        </main>
+      </section>
 
     </div>
+
+  </main>
 
 </div>
 
 
-<!-- =============================================================
-     GOOGLE SHEETS CONFIGURATION
-     ============================================================= -->
-
 <script>
 
-    /*
-     * IMPORTANT
-     * -------------------------------------------------------------
-     * This is your published Google Sheets CSV URL.
-     */
+  /* =========================================================
+     GOOGLE SHEETS CONFIGURATION
+     ========================================================= */
 
-    const GOOGLE_SHEETS_CSV_URL =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
+  const GOOGLE_SHEETS_CSV_URL =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
 
 
-    /*
-     * Keep the URL in the text box synchronized.
-     */
+  /* =========================================================
+     APPLICATION STATE
+     ========================================================= */
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
+  let salesData = [];
 
-            const urlBox =
-                document.getElementById(
-                    "googleSheetsUrl"
-                );
 
-            if (urlBox) {
-                urlBox.value =
-                    GOOGLE_SHEETS_CSV_URL;
-            }
+  /* =========================================================
+     INITIALIZATION
+     ========================================================= */
 
-            const year =
-                document.getElementById(
-                    "currentYear"
-                );
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-            if (year) {
-                year.textContent =
-                    new Date().getFullYear();
-            }
+      document.getElementById(
+        "currentDate"
+      ).textContent =
+        new Date().toLocaleDateString(
+          "en-IN",
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          }
+        );
 
-            loadSalesData();
-        }
+      document.getElementById(
+        "sheetsUrl"
+      ).value =
+        localStorage.getItem(
+          "anytimeDieselSheetsUrl"
+        ) ||
+        GOOGLE_SHEETS_CSV_URL;
+
+      loadData();
+
+    }
+  );
+
+
+  /* =========================================================
+     LOAD GOOGLE SHEETS DATA
+     ========================================================= */
+
+  async function loadData() {
+
+    setStatus(
+      "loading",
+      "Loading Google Sheets data..."
     );
 
+    try {
 
-    /*
-     * ============================================================
-     * UTILITY FUNCTIONS
-     * ============================================================
-     */
+      const url =
+        localStorage.getItem(
+          "anytimeDieselSheetsUrl"
+        ) ||
+        GOOGLE_SHEETS_CSV_URL;
 
-    function escapeHtml(value) {
+      if (!url) {
+        throw new Error(
+          "Google Sheets URL is missing."
+        );
+      }
 
-        return String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+
+      /*
+       * Important:
+       *
+       * We send the Google Sheets URL to the
+       * Vercel serverless function.
+       *
+       * /api/sheets must accept:
+       *
+       * ?url=GOOGLE_SHEETS_URL
+       */
+
+      const apiUrl =
+        "/api/sheets?url=" +
+        encodeURIComponent(url);
+
+
+      const response =
+        await fetch(apiUrl, {
+          method: "GET",
+          cache: "no-store"
+        });
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Server returned HTTP " +
+          response.status
+        );
+
+      }
+
+
+      const result =
+        await response.text();
+
+
+      if (!result.trim()) {
+
+        throw new Error(
+          "Google Sheets returned no data."
+        );
+
+      }
+
+
+      salesData =
+        parseCSV(result);
+
+
+      if (!salesData.length) {
+
+        throw new Error(
+          "No sales records were found."
+        );
+
+      }
+
+
+      renderDashboard();
+
+      setStatus(
+        "online",
+        "Google Sheets connected"
+      );
+
+      document.getElementById(
+        "lastUpdated"
+      ).textContent =
+        "Updated " +
+        new Date().toLocaleTimeString(
+          "en-IN",
+          {
+            hour: "2-digit",
+            minute: "2-digit"
+          }
+        );
+
     }
 
+    catch (error) {
 
-    function parseNumber(value) {
+      console.error(
+        "Dashboard loading error:",
+        error
+      );
+
+      setStatus(
+        "error",
+        "Unable to load Google Sheets data"
+      );
+
+      showError(
+        error.message
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     CSV PARSER
+     ========================================================= */
+
+  function parseCSV(text) {
+
+    const rows = [];
+
+    let row = [];
+
+    let value = "";
+
+    let insideQuotes = false;
+
+
+    for (
+      let i = 0;
+      i < text.length;
+      i++
+    ) {
+
+      const char =
+        text[i];
+
+      const next =
+        text[i + 1];
+
+
+      if (
+        char === '"' &&
+        insideQuotes &&
+        next === '"'
+      ) {
+
+        value += '"';
+
+        i++;
+
+        continue;
+
+      }
+
+
+      if (char === '"') {
+
+        insideQuotes =
+          !insideQuotes;
+
+        continue;
+
+      }
+
+
+      if (
+        char === "," &&
+        !insideQuotes
+      ) {
+
+        row.push(
+          value.trim()
+        );
+
+        value = "";
+
+        continue;
+
+      }
+
+
+      if (
+        (char === "\n" ||
+         char === "\r") &&
+        !insideQuotes
+      ) {
 
         if (
-            value === null ||
-            value === undefined ||
-            value === ""
+          char === "\r" &&
+          next === "\n"
         ) {
-            return 0;
+          i++;
         }
 
-        let cleaned =
-            String(value)
-                .replace(/₹/g, "")
-                .replace(/,/g, "")
-                .replace(/%/g, "")
-                .trim();
-
-        const number =
-            parseFloat(cleaned);
-
-        return Number.isFinite(number)
-            ? number
-            : 0;
-    }
-
-
-    function formatCurrency(value) {
-
-        const number =
-            Number(value) || 0;
-
-        return new Intl.NumberFormat(
-            "en-IN",
-            {
-                style: "currency",
-                currency: "INR",
-                maximumFractionDigits: 0
-            }
-        ).format(number);
-    }
-
-
-    function formatNumber(value) {
-
-        return new Intl.NumberFormat(
-            "en-IN",
-            {
-                maximumFractionDigits: 0
-            }
-        ).format(
-            Number(value) || 0
+        row.push(
+          value.trim()
         );
-    }
-
-
-    function parseCSV(text) {
-
-        const rows = [];
-
-        let row = [];
-
-        let cell = "";
-
-        let insideQuotes = false;
-
-
-        for (
-            let i = 0;
-            i < text.length;
-            i++
-        ) {
-
-            const character =
-                text[i];
-
-            const next =
-                text[i + 1];
-
-
-            if (
-                character === '"' &&
-                insideQuotes &&
-                next === '"'
-            ) {
-
-                cell += '"';
-
-                i++;
-
-                continue;
-            }
-
-
-            if (character === '"') {
-
-                insideQuotes =
-                    !insideQuotes;
-
-                continue;
-            }
-
-
-            if (
-                character === "," &&
-                !insideQuotes
-            ) {
-
-                row.push(cell);
-
-                cell = "";
-
-                continue;
-            }
-
-
-            if (
-                (
-                    character === "\n" ||
-                    character === "\r"
-                ) &&
-                !insideQuotes
-            ) {
-
-                if (
-                    character === "\r" &&
-                    next === "\n"
-                ) {
-                    i++;
-                }
-
-                row.push(cell);
-
-                rows.push(row);
-
-                row = [];
-
-                cell = "";
-
-                continue;
-            }
-
-
-            cell += character;
-        }
-
 
         if (
-            cell.length > 0 ||
-            row.length > 0
+          row.some(
+            cell =>
+              cell !== ""
+          )
         ) {
-
-            row.push(cell);
-
-            rows.push(row);
+          rows.push(row);
         }
 
+        row = [];
 
-        return rows;
+        value = "";
+
+        continue;
+
+      }
+
+
+      value += char;
+
     }
 
 
-    function normalizeHeader(value) {
+    if (
+      value !== "" ||
+      row.length
+    ) {
 
-        return String(value || "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "_");
+      row.push(
+        value.trim()
+      );
+
+      if (
+        row.some(
+          cell =>
+            cell !== ""
+        )
+      ) {
+        rows.push(row);
+      }
+
     }
 
 
-    function csvToObjects(csvText) {
-
-        const rows =
-            parseCSV(csvText);
-
-        if (!rows.length) {
-            return [];
-        }
-
-
-        const headers =
-            rows[0].map(
-                normalizeHeader
-            );
-
-
-        const records = [];
-
-
-        for (
-            let i = 1;
-            i < rows.length;
-            i++
-        ) {
-
-            const values =
-                rows[i];
-
-
-            if (
-                values.every(
-                    value =>
-                        !String(value || "").trim()
-                )
-            ) {
-                continue;
-            }
-
-
-            const object = {};
-
-
-            headers.forEach(
-                (header, index) => {
-
-                    object[header] =
-                        values[index] ??
-                        "";
-                }
-            );
-
-
-            records.push(object);
-        }
-
-
-        return records;
+    if (rows.length < 2) {
+      return [];
     }
 
 
-    /*
-     * ============================================================
-     * LOAD SALES DATA
-     * ============================================================
-     */
-
-    async function loadSalesData() {
-
-        const status =
-            document.getElementById(
-                "loadStatus"
-            );
+    const headers =
+      rows[0].map(
+        h =>
+          normalizeHeader(h)
+      );
 
 
-        const urlBox =
-            document.getElementById(
-                "googleSheetsUrl"
-            );
+    return rows
+      .slice(1)
+      .map(row => {
 
+        const object = {};
 
-        const url =
-            urlBox?.value?.trim() ||
-            GOOGLE_SHEETS_CSV_URL;
+        headers.forEach(
+          (header, index) => {
 
+            object[header] =
+              row[index] !== undefined
+                ? row[index].trim()
+                : "";
 
-        if (!url) {
-
-            setStatus(
-                "Missing Google Sheets URL.",
-                true
-            );
-
-            return;
-        }
-
-
-        setStatus(
-            "Loading Google Sheets data...",
-            false,
-            true
+          }
         );
 
+        return object;
 
-        try {
+      })
+      .filter(row =>
+        Object.values(row)
+          .some(value =>
+            value !== ""
+          )
+      );
 
-            /*
-             * IMPORTANT:
-             *
-             * We call your Vercel server-side endpoint.
-             * This avoids browser CORS problems with Google Sheets.
-             */
-
-            const apiUrl =
-                "/api/sheets?url=" +
-                encodeURIComponent(url);
+  }
 
 
-            const response =
-                await fetch(
-                    apiUrl,
-                    {
-                        method: "GET",
-                        headers: {
-                            "Accept":
-                                "text/csv, application/json, text/plain, */*"
-                        },
-                        cache: "no-store"
-                    }
-                );
+  /* =========================================================
+     HEADER NORMALIZATION
+     ========================================================= */
+
+  function normalizeHeader(header) {
+
+    return String(header || "")
+      .trim()
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]+/g,
+        "_"
+      )
+      .replace(
+        /^_|_$/g,
+        ""
+      );
+
+  }
 
 
-            if (!response.ok) {
+  /* =========================================================
+     DATA HELPERS
+     ========================================================= */
 
-                throw new Error(
-                    "Server returned HTTP " +
-                    response.status
-                );
-            }
+  function getCompany(row) {
 
+    return (
+      row.company ||
+      row.company_name ||
+      row.account ||
+      row.customer ||
+      "Unnamed Account"
+    );
 
-            const contentType =
-                response.headers.get(
-                    "content-type"
-                ) || "";
-
-
-            const responseText =
-                await response.text();
+  }
 
 
-            if (!responseText.trim()) {
+  function getSector(row) {
 
-                throw new Error(
-                    "No data was returned from Google Sheets."
-                );
-            }
+    return (
+      row.sector ||
+      row.industry ||
+      row.segment ||
+      "-"
+    );
 
-
-            let csvText =
-                responseText;
-
-
-            /*
-             * If the API returns JSON containing CSV,
-             * handle that too.
-             */
-
-            if (
-                contentType.includes(
-                    "application/json"
-                )
-            ) {
-
-                try {
-
-                    const json =
-                        JSON.parse(
-                            responseText
-                        );
+  }
 
 
-                    if (
-                        typeof json ===
-                        "string"
-                    ) {
+  function getValue(row) {
 
-                        csvText =
-                            json;
+    const raw =
+      row.value ||
+      row.amount ||
+      row.opportunity_value ||
+      row.deal_value ||
+      "0";
 
-                    } else if (
-                        json.csv
-                    ) {
+    return parseNumber(raw);
 
-                        csvText =
-                            json.csv;
-
-                    } else if (
-                        json.data
-                    ) {
-
-                        if (
-                            typeof json.data ===
-                            "string"
-                        ) {
-
-                            csvText =
-                                json.data;
-
-                        } else {
-
-                            renderRecords(
-                                json.data
-                            );
-
-                            setStatus(
-                                "Data loaded successfully.",
-                                false
-                            );
-
-                            return;
-                        }
-
-                    } else if (
-                        json.error
-                    ) {
-
-                        throw new Error(
-                            json.error
-                        );
-                    }
-
-                } catch (jsonError) {
-
-                    /*
-                     * If it is not valid JSON,
-                     * treat the response as CSV.
-                     */
-
-                    csvText =
-                        responseText;
-                }
-            }
+  }
 
 
-            const records =
-                csvToObjects(
-                    csvText
-                );
+  function getStage(row) {
+
+    return (
+      row.stage ||
+      row.status ||
+      "New"
+    );
+
+  }
 
 
-            if (!records.length) {
+  function getProbability(row) {
 
-                throw new Error(
-                    "No sales records were found in the published CSV."
-                );
-            }
-
-
-            renderRecords(records);
-
-
-            setStatus(
-                "Connected • " +
-                records.length +
-                " records loaded",
-                false
-            );
+    let value =
+      parseNumber(
+        row.probability ||
+        row.probability_percent ||
+        0
+      );
 
 
-            updateConnection(
-                true
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Google Sheets error:",
-                error
-            );
-
-
-            setStatus(
-                "Unable to load data: " +
-                error.message,
-                true
-            );
-
-
-            updateConnection(
-                false
-            );
-
-
-            showDataError(
-                error.message
-            );
-        }
+    if (
+      value > 0 &&
+      value <= 1
+    ) {
+      value *= 100;
     }
 
 
-    /*
-     * ============================================================
-     * RENDER RECORDS
-     * ============================================================
-     */
-
-    function renderRecords(records) {
-
-        const cleaned =
-            records
-                .map(normalizeRecord)
-                .filter(
-                    record =>
-                        record.company ||
-                        record.value
-                );
-
-
-        updateKPIs(
-            cleaned
-        );
-
-
-        renderOpportunityTable(
-            cleaned
-        );
-
-
-        renderCharts(
-            cleaned
-        );
-    }
-
-
-    function normalizeRecord(record) {
-
-        const company =
-            record.company ||
-            record.customer ||
-            record.account ||
-            record.opportunity ||
-            "Unnamed";
-
-
-        const sector =
-            record.sector ||
-            record.industry ||
-            record.category ||
-            "—";
-
-
-        const value =
-            parseNumber(
-                record.value ||
-                record.amount ||
-                record.deal_value ||
-                0
-            );
-
-
-        const stage =
-            record.stage ||
-            record.status ||
-            "Unknown";
-
-
-        let probability =
-            parseNumber(
-                record.probability ||
-                record.probability_percent ||
-                record.win_probability ||
-                0
-            );
-
-
-        /*
-         * If probability is supplied as a decimal,
-         * e.g. 0.80, convert it to 80%.
-         */
-
-        if (
-            probability > 0 &&
-            probability <= 1
-        ) {
-
-            probability *= 100;
-        }
-
-
-        const owner =
-            record.owner ||
-            record.salesperson ||
-            record.assigned_to ||
-            "—";
-
-
-        const month =
-            record.month ||
-            record.expected_month ||
-            record.closing_month ||
-            "—";
-
-
-        return {
-
-            company:
-                String(company).trim(),
-
-            sector:
-                String(sector).trim(),
-
-            value,
-
-            stage:
-                String(stage).trim(),
-
-            probability,
-
-            owner:
-                String(owner).trim(),
-
-            month:
-                String(month).trim()
-        };
-    }
-
-
-    /*
-     * ============================================================
-     * KPI CALCULATIONS
-     * ============================================================
-     */
-
-    function updateKPIs(records) {
-
-        const total =
-            records.reduce(
-                (
-                    sum,
-                    record
-                ) =>
-                    sum +
-                    record.value,
-                0
-            );
-
-
-        const weighted =
-            records.reduce(
-                (
-                    sum,
-                    record
-                ) =>
-                    sum +
-                    (
-                        record.value *
-                        record.probability /
-                        100
-                    ),
-                0
-            );
-
-
-        const count =
-            records.length;
-
-
-        const average =
-            count
-                ? total / count
-                : 0;
-
-
-        const averageProbability =
-            count
-                ? records.reduce(
-                    (
-                        sum,
-                        record
-                    ) =>
-                        sum +
-                        record.probability,
-                    0
-                ) / count
-                : 0;
-
-
-        const months =
-            records
-                .map(
-                    record =>
-                        record.month
-                )
-                .filter(
-                    month =>
-                        month &&
-                        month !== "—"
-                );
-
-
-        const latestMonth =
-            months.length
-                ? months[
-                    months.length - 1
-                ]
-                : "—";
-
-
-        setText(
-            "totalPipeline",
-            formatCurrency(total)
-        );
-
-
-        setText(
-            "weightedPipeline",
-            formatCurrency(weighted)
-        );
-
-
-        setText(
-            "opportunityCount",
-            formatNumber(count)
-        );
-
-
-        setText(
-            "averageDeal",
-            formatCurrency(average)
-        );
-
-
-        setText(
-            "averageProbability",
-            Math.round(
-                averageProbability
-            ) + "%"
-        );
-
-
-        setText(
-            "latestMonth",
-            latestMonth
-        );
-
-
-        setText(
-            "opportunitySummary",
-            count +
-            " active opportunit" +
-            (
-                count === 1
-                    ? "y"
-                    : "ies"
-            )
-        );
-    }
-
-
-    function setText(
-        id,
+    return Math.max(
+      0,
+      Math.min(
+        100,
         value
+      )
+    );
+
+  }
+
+
+  function getOwner(row) {
+
+    return (
+      row.owner ||
+      row.sales_owner ||
+      row.assigned_to ||
+      "-"
+    );
+
+  }
+
+
+  function getMonth(row) {
+
+    return (
+      row.month ||
+      row.expected_month ||
+      row.close_month ||
+      "-"
+    );
+
+  }
+
+
+  function parseNumber(value) {
+
+    if (
+      value === null ||
+      value === undefined
     ) {
-
-        const element =
-            document.getElementById(id);
-
-        if (element) {
-            element.textContent =
-                value;
-        }
+      return 0;
     }
 
 
-    /*
-     * ============================================================
-     * OPPORTUNITY TABLE
-     * ============================================================
-     */
-
-    function renderOpportunityTable(
-        records
-    ) {
-
-        const container =
-            document.getElementById(
-                "opportunityTableContainer"
-            );
-
-
-        if (!container) {
-            return;
-        }
+    const clean =
+      String(value)
+        .replace(
+          /₹/g,
+          ""
+        )
+        .replace(
+          /,/g,
+          ""
+        )
+        .replace(
+          /%/g,
+          ""
+        )
+        .trim();
 
 
-        const sorted =
-            [...records]
-                .sort(
-                    (
-                        a,
-                        b
-                    ) =>
-                        b.value -
-                        a.value
-                )
-                .slice(
-                    0,
-                    15
-                );
+    const number =
+      parseFloat(clean);
 
 
-        if (!sorted.length) {
+    return Number.isFinite(number)
+      ? number
+      : 0;
 
-            container.innerHTML = `
-                <div class="empty-state">
-                    <strong>No opportunities found</strong>
-                    Add sales records to your Google Sheet.
-                </div>
-            `;
-
-            return;
-        }
+  }
 
 
-        let html = `
+  function formatCurrency(value) {
 
-            <table>
+    return new Intl.NumberFormat(
+      "en-IN",
+      {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0
+      }
+    ).format(value || 0);
 
-                <thead>
-
-                    <tr>
-
-                        <th>Opportunity</th>
-
-                        <th>Sector</th>
-
-                        <th>Value</th>
-
-                        <th>Stage</th>
-
-                        <th>Probability</th>
-
-                        <th>Owner</th>
-
-                        <th>Month</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-        `;
+  }
 
 
-        sorted.forEach(
-            record => {
+  function formatNumber(value) {
 
-                html += `
+    return new Intl.NumberFormat(
+      "en-IN"
+    ).format(value || 0);
 
-                    <tr>
+  }
 
-                        <td>
-                            <strong>
-                                ${escapeHtml(
-                                    record.company
-                                )}
-                            </strong>
-                        </td>
 
-                        <td>
-                            ${escapeHtml(
-                                record.sector
-                            )}
-                        </td>
+  /* =========================================================
+     RENDER DASHBOARD
+     ========================================================= */
 
-                        <td>
-                            <strong>
-                                ${formatCurrency(
-                                    record.value
-                                )}
-                            </strong>
-                        </td>
+  function renderDashboard() {
 
-                        <td>
+    renderKPIs();
 
-                            <span class="stage">
-                                ${escapeHtml(
-                                    record.stage
-                                )}
-                            </span>
+    renderMonthlyChart();
 
-                        </td>
+    renderStageChart();
 
-                        <td class="probability">
+    renderTopOpportunities();
 
-                            ${Math.round(
-                                record.probability
-                            )}%
+    renderPipelineTable();
 
-                        </td>
+    renderOpportunitiesTable();
 
-                        <td>
-                            ${escapeHtml(
-                                record.owner
-                            )}
-                        </td>
+    renderCustomersTable();
 
-                        <td>
-                            ${escapeHtml(
-                                record.month
-                            )}
-                        </td>
+    renderAnalytics();
 
-                    </tr>
-                `;
-            }
+  }
+
+
+  /* =========================================================
+     KPI CARDS
+     ========================================================= */
+
+  function renderKPIs() {
+
+    const totalValue =
+      salesData.reduce(
+        (sum, row) =>
+          sum + getValue(row),
+        0
+      );
+
+
+    const opportunityCount =
+      salesData.length;
+
+
+    const accounts =
+      new Set(
+        salesData.map(
+          getCompany
+        )
+      ).size;
+
+
+    const avgProbability =
+      opportunityCount
+        ? salesData.reduce(
+            (sum, row) =>
+              sum +
+              getProbability(row),
+            0
+          ) /
+          opportunityCount
+        : 0;
+
+
+    const highPriority =
+      salesData.filter(
+        row =>
+          getProbability(row) >= 70
+      ).length;
+
+
+    const weightedValue =
+      salesData.reduce(
+        (sum, row) =>
+          sum +
+          (
+            getValue(row) *
+            getProbability(row) /
+            100
+          ),
+        0
+      );
+
+
+    document.getElementById(
+      "pipelineValue"
+    ).textContent =
+      formatCurrency(
+        totalValue
+      );
+
+
+    document.getElementById(
+      "openOpportunities"
+    ).textContent =
+      formatNumber(
+        opportunityCount
+      );
+
+
+    document.getElementById(
+      "accountCount"
+    ).textContent =
+      formatNumber(
+        accounts
+      );
+
+
+    document.getElementById(
+      "averageProbability"
+    ).textContent =
+      Math.round(
+        avgProbability
+      ) + "%";
+
+
+    document.getElementById(
+      "highPriority"
+    ).textContent =
+      formatNumber(
+        highPriority
+      );
+
+
+    document.getElementById(
+      "weightedValue"
+    ).textContent =
+      formatCurrency(
+        weightedValue
+      );
+
+  }
+
+
+  /* =========================================================
+     MONTHLY CHART
+     ========================================================= */
+
+  function renderMonthlyChart() {
+
+    const container =
+      document.getElementById(
+        "monthlyChart"
+      );
+
+
+    if (!salesData.length) {
+
+      container.innerHTML =
+        emptyMessage(
+          "No monthly data available."
         );
+
+      return;
+
+    }
+
+
+    const monthly = {};
+
+
+    salesData.forEach(row => {
+
+      const month =
+        getMonth(row);
+
+      const value =
+        getValue(row);
+
+
+      if (!monthly[month]) {
+        monthly[month] = 0;
+      }
+
+      monthly[month] += value;
+
+    });
+
+
+    const entries =
+      Object.entries(monthly)
+        .sort(
+          (a, b) =>
+            b[1] - a[1]
+        )
+        .slice(0, 6)
+        .reverse();
+
+
+    const max =
+      Math.max(
+        ...entries.map(
+          item => item[1]
+        ),
+        1
+      );
+
+
+    let html =
+      '<div class="chart">';
+
+
+    entries.forEach(
+      ([month, value]) => {
+
+        const height =
+          Math.max(
+            5,
+            (value / max) * 90
+          );
 
 
         html += `
 
-                </tbody>
+          <div class="chart-column">
 
-            </table>
+            <div class="bar-value">
+              ${shortCurrency(value)}
+            </div>
+
+            <div
+              class="bar"
+              style="height:${height}%"
+              title="${escapeHTML(month)}: ${formatCurrency(value)}"
+            ></div>
+
+            <div class="bar-label">
+              ${escapeHTML(month)}
+            </div>
+
+          </div>
+
         `;
 
+      }
+    );
 
-        container.innerHTML =
-            html;
+
+    html +=
+      "</div>";
+
+
+    container.innerHTML =
+      html;
+
+  }
+
+
+  function shortCurrency(value) {
+
+    if (value >= 10000000) {
+      return (
+        "₹" +
+        (value / 10000000)
+          .toFixed(1) +
+        "Cr"
+      );
     }
 
 
-    /*
-     * ============================================================
-     * CHARTS
-     * ============================================================
-     */
-
-    let pipelineChart = null;
-
-    let stageChart = null;
-
-
-    function renderCharts(records) {
-
-        if (
-            typeof Chart ===
-            "undefined"
-        ) {
-
-            console.warn(
-                "Chart.js not available."
-            );
-
-            return;
-        }
+    if (value >= 100000) {
+      return (
+        "₹" +
+        (value / 100000)
+          .toFixed(1) +
+        "L"
+      );
+    }
 
 
-        renderPipelineChart(
-            records
+    if (value >= 1000) {
+      return (
+        "₹" +
+        (value / 1000)
+          .toFixed(1) +
+        "K"
+      );
+    }
+
+
+    return "₹" + value;
+
+  }
+
+
+  /* =========================================================
+     STAGE CHART
+     ========================================================= */
+
+  function renderStageChart() {
+
+    const container =
+      document.getElementById(
+        "stageChart"
+      );
+
+
+    const stages = {};
+
+
+    salesData.forEach(row => {
+
+      const stage =
+        getStage(row);
+
+      if (!stages[stage]) {
+        stages[stage] = 0;
+      }
+
+      stages[stage] +=
+        getValue(row);
+
+    });
+
+
+    const total =
+      Object.values(stages)
+        .reduce(
+          (a, b) => a + b,
+          0
         );
 
 
-        renderStageChart(
-            records
-        );
-    }
+    if (!total) {
 
-
-    function renderPipelineChart(
-        records
-    ) {
-
-        const canvas =
-            document.getElementById(
-                "pipelineChart"
-            );
-
-
-        if (!canvas) {
-            return;
-        }
-
-
-        const totals = {};
-
-
-        records.forEach(
-            record => {
-
-                const company =
-                    record.company ||
-                    "Unknown";
-
-
-                totals[company] =
-                    (
-                        totals[company] ||
-                        0
-                    ) +
-                    record.value;
-            }
+      container.innerHTML =
+        emptyMessage(
+          "No stage data available."
         );
 
+      return;
 
-        const entries =
-            Object.entries(
-                totals
-            )
-                .sort(
-                    (
-                        a,
-                        b
-                    ) =>
-                        b[1] -
-                        a[1]
-                )
-                .slice(
-                    0,
-                    10
-                );
-
-
-        const labels =
-            entries.map(
-                entry =>
-                    entry[0]
-            );
-
-
-        const values =
-            entries.map(
-                entry =>
-                    entry[1]
-            );
-
-
-        if (pipelineChart) {
-            pipelineChart.destroy();
-        }
-
-
-        pipelineChart =
-            new Chart(
-                canvas,
-                {
-                    type: "bar",
-
-                    data: {
-
-                        labels,
-
-                        datasets: [
-                            {
-                                label:
-                                    "Pipeline Value",
-
-                                data:
-                                    values,
-
-                                backgroundColor:
-                                    "#f59e0b",
-
-                                borderRadius:
-                                    5,
-
-                                borderSkipped:
-                                    false
-                            }
-                        ]
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio:
-                            false,
-
-                        plugins: {
-
-                            legend: {
-                                display:
-                                    false
-                            },
-
-                            tooltip: {
-
-                                callbacks: {
-
-                                    label:
-                                        function(
-                                            context
-                                        ) {
-
-                                            return (
-                                                " " +
-                                                formatCurrency(
-                                                    context.raw
-                                                )
-                                            );
-                                        }
-                                }
-                            }
-                        },
-
-                        scales: {
-
-                            y: {
-
-                                beginAtZero:
-                                    true,
-
-                                ticks: {
-
-                                    callback:
-                                        function(
-                                            value
-                                        ) {
-
-                                            return formatCompactCurrency(
-                                                value
-                                            );
-                                        }
-                                }
-                            },
-
-                            x: {
-
-                                ticks: {
-
-                                    maxRotation:
-                                        45,
-
-                                    minRotation:
-                                        0
-                                }
-                            }
-                        }
-                    }
-                }
-            );
     }
 
 
-    function renderStageChart(
-        records
-    ) {
+    let html = "";
 
-        const canvas =
-            document.getElementById(
-                "stageChart"
+
+    Object.entries(stages)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .forEach(
+        ([stage, value]) => {
+
+          const percentage =
+            Math.round(
+              value /
+              total *
+              100
             );
 
 
-        if (!canvas) {
-            return;
-        }
+          html += `
 
+            <div class="stage-row">
 
-        const totals = {};
+              <div class="stage-top">
 
-
-        records.forEach(
-            record => {
-
-                const stage =
-                    record.stage ||
-                    "Unknown";
-
-
-                totals[stage] =
-                    (
-                        totals[stage] ||
-                        0
-                    ) +
-                    record.value;
-            }
-        );
-
-
-        const entries =
-            Object.entries(
-                totals
-            )
-                .sort(
-                    (
-                        a,
-                        b
-                    ) =>
-                        b[1] -
-                        a[1]
-                );
-
-
-        const labels =
-            entries.map(
-                entry =>
-                    entry[0]
-            );
-
-
-        const values =
-            entries.map(
-                entry =>
-                    entry[1]
-            );
-
-
-        if (stageChart) {
-            stageChart.destroy();
-        }
-
-
-        stageChart =
-            new Chart(
-                canvas,
-                {
-                    type: "doughnut",
-
-                    data: {
-
-                        labels,
-
-                        datasets: [
-                            {
-                                data:
-                                    values,
-
-                                backgroundColor: [
-                                    "#f59e0b",
-                                    "#2563eb",
-                                    "#16a34a",
-                                    "#7c3aed",
-                                    "#dc2626",
-                                    "#0891b2",
-                                    "#64748b",
-                                    "#ea580c"
-                                ],
-
-                                borderWidth:
-                                    2,
-
-                                borderColor:
-                                    "#ffffff"
-                            }
-                        ]
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio:
-                            false,
-
-                        cutout:
-                            "62%",
-
-                        plugins: {
-
-                            legend: {
-
-                                position:
-                                    "bottom",
-
-                                labels: {
-
-                                    boxWidth:
-                                        12,
-
-                                    padding:
-                                        12,
-
-                                    font: {
-                                        size:
-                                            10
-                                    }
-                                }
-                            },
-
-                            tooltip: {
-
-                                callbacks: {
-
-                                    label:
-                                        function(
-                                            context
-                                        ) {
-
-                                            return (
-                                                " " +
-                                                context.label +
-                                                ": " +
-                                                formatCurrency(
-                                                    context.raw
-                                                )
-                                            );
-                                        }
-                                }
-                            }
-                        }
-                    }
-                }
-            );
-    }
-
-
-    function formatCompactCurrency(
-        value
-    ) {
-
-        const number =
-            Number(value) || 0;
-
-
-        if (
-            Math.abs(number) >=
-            10000000
-        ) {
-
-            return (
-                "₹" +
-                (
-                    number /
-                    10000000
-                ).toFixed(1) +
-                " Cr"
-            );
-        }
-
-
-        if (
-            Math.abs(number) >=
-            100000
-        ) {
-
-            return (
-                "₹" +
-                (
-                    number /
-                    100000
-                ).toFixed(1) +
-                " L"
-            );
-        }
-
-
-        if (
-            Math.abs(number) >=
-            1000
-        ) {
-
-            return (
-                "₹" +
-                (
-                    number /
-                    1000
-                ).toFixed(0) +
-                "K"
-            );
-        }
-
-
-        return "₹" + number;
-    }
-
-
-    /*
-     * ============================================================
-     * STATUS / ERROR HANDLING
-     * ============================================================
-     */
-
-    function setStatus(
-        message,
-        isError = false,
-        loading = false
-    ) {
-
-        const element =
-            document.getElementById(
-                "loadStatus"
-            );
-
-
-        if (!element) {
-            return;
-        }
-
-
-        element.innerHTML =
-            loading
-                ? `
-                    <span class="spinner"></span>
-                    ${escapeHtml(message)}
-                  `
-                : escapeHtml(message);
-
-
-        element.style.color =
-            isError
-                ? "#dc2626"
-                : "#6b7280";
-    }
-
-
-    function updateConnection(
-        connected
-    ) {
-
-        const element =
-            document.getElementById(
-                "connectionStatus"
-            );
-
-
-        if (!element) {
-            return;
-        }
-
-
-        if (connected) {
-
-            element.innerHTML = `
-                <span
-                    class="status-dot"
-                    style="background:#22c55e;"
-                ></span>
-
-                <span class="button-text">
-                    Google Sheets Connected
+                <span class="stage-name">
+                  ${escapeHTML(stage)}
                 </span>
-            `;
 
-        } else {
-
-            element.innerHTML = `
-                <span
-                    class="status-dot"
-                    style="background:#ef4444;"
-                ></span>
-
-                <span class="button-text">
-                    Data Connection Error
+                <span class="stage-count">
+                  ${formatCurrency(value)}
+                  · ${percentage}%
                 </span>
-            `;
-        }
-    }
 
+              </div>
 
-    function showDataError(
-        message
-    ) {
+              <div class="progress">
 
-        const container =
-            document.getElementById(
-                "opportunityTableContainer"
-            );
+                <div
+                  class="progress-bar"
+                  style="width:${percentage}%"
+                ></div>
 
-
-        if (!container) {
-            return;
-        }
-
-
-        container.innerHTML = `
-
-            <div class="empty-state">
-
-                <strong>
-                    Could not load Google Sheets data
-                </strong>
-
-                <div>
-                    ${escapeHtml(
-                        message
-                    )}
-                </div>
-
-                <br>
-
-                <button
-                    class="primary-button"
-                    type="button"
-                    onclick="loadSalesData()"
-                >
-                    Try Again
-                </button>
+              </div>
 
             </div>
-        `;
+
+          `;
+
+        }
+      );
+
+
+    container.innerHTML =
+      html;
+
+  }
+
+
+  /* =========================================================
+     TOP OPPORTUNITIES
+     ========================================================= */
+
+  function renderTopOpportunities() {
+
+    const container =
+      document.getElementById(
+        "topOpportunities"
+      );
+
+
+    const rows =
+      [...salesData]
+        .sort(
+          (a, b) =>
+            getValue(b) -
+            getValue(a)
+        )
+        .slice(0, 5);
+
+
+    container.innerHTML =
+      createOpportunityTable(
+        rows
+      );
+
+  }
+
+
+  /* =========================================================
+     PIPELINE TABLE
+     ========================================================= */
+
+  function renderPipelineTable() {
+
+    document.getElementById(
+      "pipelineTable"
+    ).innerHTML =
+      createOpportunityTable(
+        salesData
+      );
+
+  }
+
+
+  /* =========================================================
+     OPPORTUNITIES TABLE
+     ========================================================= */
+
+  function renderOpportunitiesTable() {
+
+    const rows =
+      [...salesData]
+        .sort(
+          (a, b) =>
+            getProbability(b) -
+            getProbability(a)
+        );
+
+
+    document.getElementById(
+      "opportunitiesTable"
+    ).innerHTML =
+      createOpportunityTable(
+        rows
+      );
+
+  }
+
+
+  /* =========================================================
+     OPPORTUNITY TABLE GENERATOR
+     ========================================================= */
+
+  function createOpportunityTable(
+    rows
+  ) {
+
+    if (!rows.length) {
+
+      return emptyMessage(
+        "No opportunities available."
+      );
+
     }
 
 
-    /*
-     * ============================================================
-     * NAVIGATION
-     * ============================================================
-     */
+    let html = `
 
-    function scrollToSection(
-        id
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Company</th>
+
+            <th>Sector</th>
+
+            <th>Value</th>
+
+            <th>Stage</th>
+
+            <th>Probability</th>
+
+            <th>Owner</th>
+
+            <th>Month</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+    `;
+
+
+    rows.forEach(row => {
+
+      const probability =
+        getProbability(row);
+
+
+      html += `
+
+        <tr>
+
+          <td>
+            <div class="company-name">
+              ${escapeHTML(
+                getCompany(row)
+              )}
+            </div>
+          </td>
+
+          <td>
+            <span class="sector">
+              ${escapeHTML(
+                getSector(row)
+              )}
+            </span>
+          </td>
+
+          <td>
+            <span class="amount">
+              ${formatCurrency(
+                getValue(row)
+              )}
+            </span>
+          </td>
+
+          <td>
+            ${stageBadge(
+              getStage(row)
+            )}
+          </td>
+
+          <td>
+            <strong>
+              ${Math.round(
+                probability
+              )}%
+            </strong>
+          </td>
+
+          <td>
+            ${escapeHTML(
+              getOwner(row)
+            )}
+          </td>
+
+          <td>
+            ${escapeHTML(
+              getMonth(row)
+            )}
+          </td>
+
+        </tr>
+
+      `;
+
+    });
+
+
+    html += `
+
+        </tbody>
+
+      </table>
+
+    `;
+
+
+    return html;
+
+  }
+
+
+  /* =========================================================
+     CUSTOMERS
+     ========================================================= */
+
+  function renderCustomersTable() {
+
+    const container =
+      document.getElementById(
+        "customersTable"
+      );
+
+
+    const companies = {};
+
+
+    salesData.forEach(row => {
+
+      const company =
+        getCompany(row);
+
+
+      if (!companies[company]) {
+
+        companies[company] = {
+
+          company,
+
+          sector:
+            getSector(row),
+
+          opportunities: 0,
+
+          value: 0,
+
+          weighted: 0
+
+        };
+
+      }
+
+
+      companies[company]
+        .opportunities++;
+
+
+      companies[company]
+        .value +=
+        getValue(row);
+
+
+      companies[company]
+        .weighted +=
+        getValue(row) *
+        getProbability(row) /
+        100;
+
+    });
+
+
+    const rows =
+      Object.values(companies)
+        .sort(
+          (a, b) =>
+            b.value -
+            a.value
+        );
+
+
+    let html = `
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Company</th>
+
+            <th>Sector</th>
+
+            <th>Opportunities</th>
+
+            <th>Pipeline Value</th>
+
+            <th>Weighted Value</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+    `;
+
+
+    rows.forEach(row => {
+
+      html += `
+
+        <tr>
+
+          <td>
+            <div class="company-name">
+              ${escapeHTML(
+                row.company
+              )}
+            </div>
+          </td>
+
+          <td>
+            ${escapeHTML(
+              row.sector
+            )}
+          </td>
+
+          <td>
+            ${row.opportunities}
+          </td>
+
+          <td>
+            <strong>
+              ${formatCurrency(
+                row.value
+              )}
+            </strong>
+          </td>
+
+          <td>
+            ${formatCurrency(
+              row.weighted
+            )}
+          </td>
+
+        </tr>
+
+      `;
+
+    });
+
+
+    html += `
+
+        </tbody>
+
+      </table>
+
+    `;
+
+
+    container.innerHTML =
+      rows.length
+        ? html
+        : emptyMessage(
+            "No customer data available."
+          );
+
+  }
+
+
+  /* =========================================================
+     ANALYTICS
+     ========================================================= */
+
+  function renderAnalytics() {
+
+    const total =
+      salesData.reduce(
+        (sum, row) =>
+          sum + getValue(row),
+        0
+      );
+
+
+    const weighted =
+      salesData.reduce(
+        (sum, row) =>
+          sum +
+          getValue(row) *
+          getProbability(row) /
+          100,
+        0
+      );
+
+
+    const high =
+      salesData.filter(
+        row =>
+          getProbability(row) >= 70
+      ).length;
+
+
+    const accounts =
+      new Set(
+        salesData.map(
+          getCompany
+        )
+      ).size;
+
+
+    document.getElementById(
+      "analyticsPipeline"
+    ).textContent =
+      formatCurrency(total);
+
+
+    document.getElementById(
+      "analyticsWeighted"
+    ).textContent =
+      formatCurrency(weighted);
+
+
+    document.getElementById(
+      "analyticsHigh"
+    ).textContent =
+      formatNumber(high);
+
+
+    document.getElementById(
+      "snapshotPipeline"
+    ).textContent =
+      formatCurrency(total);
+
+
+    document.getElementById(
+      "snapshotWeighted"
+    ).textContent =
+      formatCurrency(weighted);
+
+
+    document.getElementById(
+      "snapshotOpportunities"
+    ).textContent =
+      formatNumber(
+        salesData.length
+      );
+
+
+    document.getElementById(
+      "snapshotAccounts"
+    ).textContent =
+      formatNumber(
+        accounts
+      );
+
+  }
+
+
+  /* =========================================================
+     STAGE BADGE
+     ========================================================= */
+
+  function stageBadge(stage) {
+
+    const lower =
+      String(stage)
+        .toLowerCase();
+
+
+    let className =
+      "badge-new";
+
+
+    if (
+      lower.includes(
+        "proposal"
+      )
     ) {
 
-        const element =
-            document.getElementById(
-                id
-            );
+      className =
+        "badge-proposal";
 
-
-        if (element) {
-
-            element.scrollIntoView(
-                {
-                    behavior:
-                        "smooth",
-                    block:
-                        "start"
-                }
-            );
-        }
     }
+    else if (
+      lower.includes(
+        "negoti"
+      )
+    ) {
+
+      className =
+        "badge-negotiation";
+
+    }
+    else if (
+      lower.includes(
+        "qualified"
+      ) ||
+      lower.includes(
+        "won"
+      )
+    ) {
+
+      className =
+        "badge-qualified";
+
+    }
+
+
+    return `
+
+      <span
+        class="badge ${className}"
+      >
+        ${escapeHTML(stage)}
+      </span>
+
+    `;
+
+  }
+
+
+  /* =========================================================
+     NAVIGATION
+     ========================================================= */
+
+  function showSection(
+    section,
+    button
+  ) {
+
+    document
+      .querySelectorAll(
+        ".dashboard-section"
+      )
+      .forEach(
+        element => {
+          element.style.display =
+            "none";
+        }
+      );
+
+
+    const target =
+      document.getElementById(
+        "section-" +
+        section
+      );
+
+
+    if (target) {
+      target.style.display =
+        "block";
+    }
+
+
+    document
+      .querySelectorAll(
+        ".nav button"
+      )
+      .forEach(
+        btn =>
+          btn.classList.remove(
+            "active"
+          )
+      );
+
+
+    if (button) {
+      button.classList.add(
+        "active"
+      );
+    }
+
+
+    const titles = {
+
+      overview:
+        "Executive Overview",
+
+      pipeline:
+        "Sales Pipeline",
+
+      opportunities:
+        "Sales Opportunities",
+
+      customers:
+        "Customer Accounts",
+
+      analytics:
+        "Sales Analytics",
+
+      targets:
+        "Sales Targets",
+
+      reports:
+        "Reports",
+
+      settings:
+        "System Settings"
+
+    };
+
+
+    document.getElementById(
+      "pageTitle"
+    ).textContent =
+      titles[section] ||
+      "Executive Overview";
+
+  }
+
+
+  function showSectionById(
+    section
+  ) {
+
+    const button =
+      [...document.querySelectorAll(
+        ".nav button"
+      )]
+      .find(
+        btn =>
+          btn.getAttribute(
+            "onclick"
+          ) &&
+          btn.getAttribute(
+            "onclick"
+          ).includes(
+            "'" +
+            section +
+            "'"
+          )
+      );
+
+
+    showSection(
+      section,
+      button
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  /* =========================================================
+     STATUS
+     ========================================================= */
+
+  function setStatus(
+    type,
+    message
+  ) {
+
+    const dot =
+      document.getElementById(
+        "statusDot"
+      );
+
+
+    const text =
+      document.getElementById(
+        "statusText"
+      );
+
+
+    dot.className =
+      "status-dot";
+
+
+    if (type === "online") {
+
+      dot.classList.add(
+        "online"
+      );
+
+    }
+
+
+    if (type === "error") {
+
+      dot.classList.add(
+        "error"
+      );
+
+    }
+
+
+    text.textContent =
+      message;
+
+  }
+
+
+  /* =========================================================
+     ERROR MESSAGE
+     ========================================================= */
+
+  function showError(
+    message
+  ) {
+
+    const safe =
+      escapeHTML(
+        message ||
+        "Unknown error."
+      );
+
+
+    document.getElementById(
+      "topOpportunities"
+    ).innerHTML = `
+
+      <div class="empty">
+
+        <strong>
+          Unable to load sales data
+        </strong>
+
+        <br><br>
+
+        ${safe}
+
+        <br><br>
+
+        Check your Google Sheets
+        publication and
+        <strong>/api/sheets</strong>
+        configuration.
+
+      </div>
+
+    `;
+
+
+    document.getElementById(
+      "monthlyChart"
+    ).innerHTML =
+      emptyMessage(
+        "Data unavailable."
+      );
+
+
+    document.getElementById(
+      "stageChart"
+    ).innerHTML =
+      emptyMessage(
+        "Data unavailable."
+      );
+
+  }
+
+
+  /* =========================================================
+     EMPTY MESSAGE
+     ========================================================= */
+
+  function emptyMessage(
+    message
+  ) {
+
+    return `
+
+      <div class="empty">
+        ${escapeHTML(message)}
+      </div>
+
+    `;
+
+  }
+
+
+  /* =========================================================
+     SAVE GOOGLE SHEETS URL
+     ========================================================= */
+
+  function saveAndReload() {
+
+    const url =
+      document.getElementById(
+        "sheetsUrl"
+      ).value.trim();
+
+
+    if (!url) {
+
+      alert(
+        "Please enter a Google Sheets CSV URL."
+      );
+
+      return;
+
+    }
+
+
+    localStorage.setItem(
+      "anytimeDieselSheetsUrl",
+      url
+    );
+
+
+    loadData();
+
+  }
+
+
+  /* =========================================================
+     RESET URL
+     ========================================================= */
+
+  function resetUrl() {
+
+    localStorage.removeItem(
+      "anytimeDieselSheetsUrl"
+    );
+
+
+    document.getElementById(
+      "sheetsUrl"
+    ).value =
+      GOOGLE_SHEETS_CSV_URL;
+
+
+    loadData();
+
+  }
+
+
+  /* =========================================================
+     HTML SECURITY
+     ========================================================= */
+
+  function escapeHTML(
+    value
+  ) {
+
+    return String(
+      value ?? ""
+    )
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  }
 
 </script>
 
 
-<!-- =============================================================
-     OPTIONAL EXISTING DASHBOARD JAVASCRIPT
-     =============================================================
+<!-- =========================================================
+     OPTIONAL EXISTING JAVASCRIPT
+     
+     If dashboard.js contains additional functions that you
+     still need, keep this line.
+     ========================================================= -->
 
-     IMPORTANT:
-     We are NOT loading js/dashboard.js here because this
-     index.html already contains the complete dashboard logic.
-
-     This prevents duplicate event handlers and duplicate
-     Google Sheets requests.
-     ============================================================= -->
-
+<script src="js/dashboard.js"></script>
 
 </body>
 </html>
