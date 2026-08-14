@@ -1,51 +1,40 @@
+const GOOGLE_SHEET_CSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
+
 export default async function handler(req, res) {
   try {
-    const raw = req.query?.url;
-
-    if (!raw) {
-      res.status(400).send("Missing Google Sheets URL.");
-      return;
-    }
-
-    const url = new URL(raw);
-
-    // Prevent this endpoint from becoming a general-purpose open proxy.
-    if (url.hostname !== "docs.google.com") {
-      res.status(400).send(
-        "Only docs.google.com Google Sheets URLs are allowed."
-      );
-      return;
-    }
-
-    const response = await fetch(url.toString(), {
-      redirect: "follow",
+    const response = await fetch(GOOGLE_SHEET_CSV, {
       headers: {
-        "User-Agent": "Anytime-Diesel-Boss-Dashboard/2.0"
-      },
-      cache: "no-store"
+        "User-Agent": "AnyTime-Diesel-Boss-Dashboard/1.0"
+      }
     });
 
     if (!response.ok) {
-      res
-        .status(response.status)
-        .send(`Google Sheets returned HTTP ${response.status}.`);
-      return;
+      throw new Error(
+        `Google Sheets returned HTTP ${response.status}`
+      );
     }
 
-    const text = await response.text();
+    const csv = await response.text();
 
-    if (!text || text.length < 10) {
-      res.status(502).send("Google Sheets returned an empty response.");
-      return;
+    if (!csv || csv.trim().length === 0) {
+      throw new Error("Google Sheet returned empty data.");
     }
 
-    res.setHeader("Content-Type", "text/csv; charset=utf-8");
-    res.setHeader("Cache-Control", "no-store, max-age=0");
-    res.status(200).send(text);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET");
+    res.setHeader("Cache-Control", "no-store");
 
-  } catch (err) {
-    res
-      .status(502)
-      .send(`Unable to fetch Google Sheets CSV: ${err.message || err}`);
+    return res.status(200).send(csv);
+
+  } catch (error) {
+
+    console.error("Google Sheets error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Unable to load Google Sheets data.",
+      details: error.message
+    });
   }
 }
