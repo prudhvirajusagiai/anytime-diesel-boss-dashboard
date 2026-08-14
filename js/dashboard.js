@@ -1,2873 +1,1436 @@
-let allData = [];
+/* ============================================================
+   ANYTIME DIESEL — BOSS SALES DASHBOARD
+   dashboard.js
+   Version: 1.0
+   Data source: /api/sheets
 
-let filteredData = [];
+   Expected Google Sheet columns:
+   company, sector, value, stage, probability, owner, month
 
-let headers = [];
+   This file:
+   - Loads data from /api/sheets
+   - Parses CSV safely
+   - Removes empty / malformed rows
+   - Converts numeric fields
+   - Calculates dashboard KPIs
+   - Exposes cleaned data as window.dashboardData
+   - Attempts to update common dashboard elements safely
+   - Does NOT expose private CRM information
+   ============================================================ */
+
+(function () {
+  "use strict";
+
+  /* ==========================================================
+     CONFIGURATION
+     ========================================================== */
+
+  const CONFIG = {
+    API_URL: "/api/sheets",
+
+    // Expected columns from Google Sheets
+    REQUIRED_COLUMNS: [
+      "company",
+      "sector",
+      "value",
+      "stage",
+      "probability",
+      "owner",
+      "month"
+    ],
+
+    // Maximum records displayed in opportunity tables
+    MAX_OPPORTUNITIES: 10,
+
+    // Cache duration in milliseconds
+    CACHE_DURATION: 60 * 1000
+  };
 
 
+  /* ==========================================================
+     GLOBAL STATE
+     ========================================================== */
 
-/* ---------------------------------------
-   HELPERS
---------------------------------------- */
-
-
-function normalize(value) {
-
-    return String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, " ");
-
-}
+  const state = {
+    rawCsv: "",
+    data: [],
+    filteredData: [],
+    loading: false,
+    error: null,
+    lastUpdated: null
+  };
 
 
-function money(value) {
+  /* ==========================================================
+     PUBLIC GLOBALS
+     ========================================================== */
 
-    const number =
-        parseFloat(
-            String(value || "")
-                .replace(/,/g, "")
-                .replace(/[₹$]/g, "")
-        ) || 0;
+  window.dashboardData = [];
+  window.dashboardState = state;
+
+
+  /* ==========================================================
+     DOM HELPERS
+     ========================================================== */
+
+  function $(selector) {
+    try {
+      return document.querySelector(selector);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function $all(selector) {
+    try {
+      return Array.from(document.querySelectorAll(selector));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function setText(selectors, value) {
+    const list = Array.isArray(selectors) ? selectors : [selectors];
+
+    list.forEach(function (selector) {
+      const element = $(selector);
+
+      if (element) {
+        element.textContent = value;
+      }
+    });
+  }
+
+  function setHTML(selectors, html) {
+    const list = Array.isArray(selectors) ? selectors : [selectors];
+
+    list.forEach(function (selector) {
+      const element = $(selector);
+
+      if (element) {
+        element.innerHTML = html;
+      }
+    });
+  }
+
+
+  /* ==========================================================
+     SECURITY / HTML ESCAPING
+     ========================================================== */
+
+  function escapeHTML(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+
+  /* ==========================================================
+     NUMBER HELPERS
+     ========================================================== */
+
+  function parseNumber(value) {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    let text = String(value).trim();
+
+    if (!text) {
+      return 0;
+    }
+
+    // Remove currency symbols, commas and spaces
+    text = text
+      .replace(/₹/g, "")
+      .replace(/Rs\.?/gi, "")
+      .replace(/INR/gi, "")
+      .replace(/,/g, "")
+      .replace(/\s/g, "")
+      .replace(/%/g, "");
+
+    const number = Number(text);
+
+    return Number.isFinite(number) ? number : 0;
+  }
+
+
+  function formatCurrency(value) {
+    const number = parseNumber(value);
 
     return new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
     }).format(number);
-
-}
-
-
-function number(value) {
-
-    return new Intl.NumberFormat("en-IN")
-        .format(
-            parseFloat(
-                String(value || "")
-                    .replace(/,/g, "")
-            ) || 0
-        );
-
-}
+  }
 
 
-function findColumn(names) {
+  function formatNumber(value) {
+    const number = parseNumber(value);
 
-    for (const name of names) {
-
-        const target = normalize(name);
-
-        const index =
-            headers.findIndex(
-                h => normalize(h) === target
-            );
-
-        if (index !== -1) {
-
-            return headers[index];
-
-        }
-
-    }
-
-    return null;
-
-}
+    return new Intl.NumberFormat("en-IN", {
+      maximumFractionDigits: 0
+    }).format(number);
+  }
 
 
-function getValue(row, names) {
+  function formatPercent(value) {
+    const number = parseNumber(value);
 
-    const column =
-        findColumn(names);
-
-    if (!column) return "";
-
-    return row[column] || "";
-
-}
+    return number.toFixed(0) + "%";
+  }
 
 
-function dateValue(value) {
+  /* ==========================================================
+     CSV PARSER
+     ========================================================== */
 
-    if (!value) return null;
-
-    const date =
-        new Date(value);
-
-    if (isNaN(date.getTime())) {
-
-        return null;
-
-    }
-
-    return date;
-
-}
-
-
-function formatDate(value) {
-
-    const date =
-        dateValue(value);
-
-    if (!date) return value || "—";
-
-    return date.toLocaleDateString(
-        "en-IN",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
-
-}
-
-
-function today() {
-
-    const date = new Date();
-
-    date.setHours(0,0,0,0);
-
-    return date;
-
-}
-
-
-function isToday(value) {
-
-    const date =
-        dateValue(value);
-
-    if (!date) return false;
-
-    date.setHours(0,0,0,0);
-
-    return date.getTime() === today().getTime();
-
-}
-
-
-function isPast(value) {
-
-    const date =
-        dateValue(value);
-
-    if (!date) return false;
-
-    date.setHours(0,0,0,0);
-
-    return date < today();
-
-}
-
-
-function csvParse(text) {
-
+  function parseCSV(csv) {
     const rows = [];
 
+    if (!csv || typeof csv !== "string") {
+      return rows;
+    }
+
     let row = [];
+    let field = "";
+    let insideQuotes = false;
 
-    let cell = "";
+    for (let i = 0; i < csv.length; i++) {
+      const character = csv[i];
+      const nextCharacter = csv[i + 1];
 
-    let quoted = false;
-
-
-    for (let i = 0; i < text.length; i++) {
-
-        const char = text[i];
-
-        const next = text[i + 1];
-
-
-        if (char === '"' && quoted && next === '"') {
-
-            cell += '"';
-
-            i++;
-
-            continue;
-
+      if (character === '"') {
+        if (insideQuotes && nextCharacter === '"') {
+          field += '"';
+          i++;
+        } else {
+          insideQuotes = !insideQuotes;
         }
 
+        continue;
+      }
 
-        if (char === '"') {
+      if (character === "," && !insideQuotes) {
+        row.push(field);
+        field = "";
+        continue;
+      }
 
-            quoted = !quoted;
-
-            continue;
-
+      if (
+        (character === "\n" || character === "\r") &&
+        !insideQuotes
+      ) {
+        if (character === "\r" && nextCharacter === "\n") {
+          i++;
         }
 
-
-        if (char === "," && !quoted) {
-
-            row.push(cell);
-
-            cell = "";
-
-            continue;
-
-        }
-
+        row.push(field);
+        field = "";
 
         if (
-            (char === "\n" || char === "\r") &&
-            !quoted
+          row.some(function (value) {
+            return String(value).trim() !== "";
+          })
         ) {
-
-            if (char === "\r" && next === "\n") {
-
-                i++;
-
-            }
-
-            row.push(cell);
-
-            cell = "";
-
-            if (row.some(v => v.trim() !== "")) {
-
-                rows.push(row);
-
-            }
-
-            row = [];
-
-            continue;
-
+          rows.push(row);
         }
 
+        row = [];
+        continue;
+      }
 
-        cell += char;
-
+      field += character;
     }
 
+    // Final field
+    row.push(field);
 
-    if (cell.length || row.length) {
-
-        row.push(cell);
-
-        if (row.some(v => v.trim() !== "")) {
-
-            rows.push(row);
-
-        }
-
+    if (
+      row.some(function (value) {
+        return String(value).trim() !== "";
+      })
+    ) {
+      rows.push(row);
     }
 
+    return rows;
+  }
+
+
+  /* ==========================================================
+     CSV NORMALIZATION
+     ========================================================== */
+
+  function normalizeHeader(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^\uFEFF/, "")
+      .replace(/\s+/g, "_");
+  }
+
+
+  function normalizeRow(headers, row) {
+    const object = {};
+
+    headers.forEach(function (header, index) {
+      object[header] =
+        row[index] !== undefined
+          ? String(row[index]).trim()
+          : "";
+    });
+
+    return object;
+  }
+
+
+  /* ==========================================================
+     VALID RECORD CHECK
+     ========================================================== */
+
+  function isValidSalesRecord(record) {
+    if (!record) {
+      return false;
+    }
+
+    const company = String(record.company || "").trim();
+
+    // Ignore completely empty rows
+    if (!company) {
+      return false;
+    }
+
+    // Ignore public-note / instruction rows
+    const lowerCompany = company.toLowerCase();
+
+    if (
+      lowerCompany.includes("public / boss view") ||
+      lowerCompany.includes("do not add") ||
+      lowerCompany.includes("confidential") ||
+      lowerCompany.includes("private crm")
+    ) {
+      return false;
+    }
+
+    // A legitimate record should have at least company
+    // and one other useful field.
+    const usefulFields = [
+      record.sector,
+      record.value,
+      record.stage,
+      record.probability,
+      record.owner,
+      record.month
+    ];
+
+    const usefulCount = usefulFields.filter(function (value) {
+      return String(value || "").trim() !== "";
+    }).length;
+
+    return usefulCount >= 1;
+  }
+
+
+  /* ==========================================================
+     CLEAN CSV DATA
+     ========================================================== */
+
+  function cleanCSVData(csv) {
+    const rows = parseCSV(csv);
 
     if (!rows.length) {
-
-        return [];
-
+      return [];
     }
 
+    const headers = rows[0].map(normalizeHeader);
 
-    const headerRow =
-        rows.shift().map(v => v.trim());
+    const records = [];
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+
+      // Ignore rows that contain nothing
+      if (
+        !row ||
+        !row.some(function (value) {
+          return String(value || "").trim() !== "";
+        })
+      ) {
+        continue;
+      }
+
+      const record = normalizeRow(headers, row);
+
+      if (!isValidSalesRecord(record)) {
+        continue;
+      }
+
+      record.value = parseNumber(record.value);
+      record.probability = parseNumber(record.probability);
+
+      record.company = String(record.company || "").trim();
+      record.sector = String(record.sector || "").trim();
+      record.stage = String(record.stage || "").trim();
+      record.owner = String(record.owner || "").trim();
+      record.month = String(record.month || "").trim();
+
+      records.push(record);
+    }
+
+    return records;
+  }
 
 
-    return rows.map(values => {
+  /* ==========================================================
+     FETCH DATA
+     ========================================================== */
 
-        const object = {};
+  async function fetchDashboardData(forceRefresh) {
+    if (state.loading) {
+      return state.data;
+    }
 
-        headerRow.forEach(
-            (header, index) => {
+    state.loading = true;
+    state.error = null;
 
-                object[header] =
-                    (values[index] || "").trim();
-
-            }
-        );
-
-        return object;
-
-    });
-
-}
-
-
-/* ---------------------------------------
-   DATA LOAD
---------------------------------------- */
-
-
-async function loadData() {
-
-    setConnection(
-        false,
-        "Connecting..."
-    );
-
+    showLoadingState();
 
     try {
-
-        const response =
-            await fetch(
-                "/api/sheets?ts=" +
-                Date.now(),
-                {
-                    cache: "no-store"
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `HTTP ${response.status}`
-            );
-
+      const response = await fetch(
+        CONFIG.API_URL + (forceRefresh ? "?refresh=1" : ""),
+        {
+          method: "GET",
+          headers: {
+            Accept: "text/csv,text/plain,*/*"
+          },
+          cache: "no-store"
         }
+      );
 
-
-        const text =
-            await response.text();
-
-
-        if (
-            !text ||
-            text.trim().length < 5
-        ) {
-
-            throw new Error(
-                "Google Sheet returned no usable data."
-            );
-
-        }
-
-
-        const data =
-            csvParse(text);
-
-
-        if (!data.length) {
-
-            throw new Error(
-                "No rows found in Google Sheet."
-            );
-
-        }
-
-
-        allData = data;
-
-        filteredData = [...allData];
-
-        headers =
-            Object.keys(
-                allData[0]
-            );
-
-
-        setConnection(
-            true,
-            "Google Sheets Connected"
+      if (!response.ok) {
+        throw new Error(
+          "Google Sheets API returned HTTP " +
+          response.status
         );
+      }
 
+      const csv = await response.text();
 
-        hideAlert();
+      if (!csv || !csv.trim()) {
+        throw new Error("The Google Sheets response is empty.");
+      }
 
-        populateFilters();
+      state.rawCsv = csv;
 
-        renderDashboard();
+      const records = cleanCSVData(csv);
 
-        updateTime();
+      state.data = records;
+      state.filteredData = records.slice();
+      state.lastUpdated = new Date();
 
+      window.dashboardData = records;
 
+      hideLoadingState();
+
+      updateDashboard(records);
+
+      return records;
     } catch (error) {
+      console.error(
+        "Anytime Diesel dashboard data error:",
+        error
+      );
 
-        console.error(error);
+      state.error = error;
 
-        setConnection(
-            false,
-            "Connection Error"
+      showErrorState(error);
+
+      return [];
+    } finally {
+      state.loading = false;
+    }
+  }
+
+
+  /* ==========================================================
+     KPI CALCULATIONS
+     ========================================================== */
+
+  function calculateKPIs(data) {
+    const records = Array.isArray(data) ? data : [];
+
+    const totalPipeline = records.reduce(function (sum, record) {
+      return sum + parseNumber(record.value);
+    }, 0);
+
+    const weightedPipeline = records.reduce(function (
+      sum,
+      record
+    ) {
+      const value = parseNumber(record.value);
+      const probability = parseNumber(record.probability);
+
+      return sum + value * (probability / 100);
+    }, 0);
+
+    const averageProbability =
+      records.length > 0
+        ? records.reduce(function (sum, record) {
+            return sum + parseNumber(record.probability);
+          }, 0) / records.length
+        : 0;
+
+    const openOpportunities = records.length;
+
+    const wonRecords = records.filter(function (record) {
+      return String(record.stage || "")
+        .toLowerCase()
+        .includes("won");
+    });
+
+    const lostRecords = records.filter(function (record) {
+      return String(record.stage || "")
+        .toLowerCase()
+        .includes("lost");
+    });
+
+    const wonValue = wonRecords.reduce(function (
+      sum,
+      record
+    ) {
+      return sum + parseNumber(record.value);
+    }, 0);
+
+    const lostValue = lostRecords.reduce(function (
+      sum,
+      record
+    ) {
+      return sum + parseNumber(record.value);
+    }, 0);
+
+    return {
+      totalPipeline: totalPipeline,
+      weightedPipeline: weightedPipeline,
+      averageProbability: averageProbability,
+      openOpportunities: openOpportunities,
+      wonCount: wonRecords.length,
+      lostCount: lostRecords.length,
+      wonValue: wonValue,
+      lostValue: lostValue
+    };
+  }
+
+
+  /* ==========================================================
+     GROUPING FUNCTIONS
+     ========================================================== */
+
+  function groupBy(data, field) {
+    const groups = {};
+
+    data.forEach(function (record) {
+      const key =
+        String(record[field] || "Unspecified").trim() ||
+        "Unspecified";
+
+      if (!groups[key]) {
+        groups[key] = {
+          name: key,
+          count: 0,
+          value: 0,
+          weightedValue: 0
+        };
+      }
+
+      groups[key].count += 1;
+
+      groups[key].value += parseNumber(record.value);
+
+      groups[key].weightedValue +=
+        parseNumber(record.value) *
+        (parseNumber(record.probability) / 100);
+    });
+
+    return Object.values(groups).sort(function (a, b) {
+      return b.value - a.value;
+    });
+  }
+
+
+  function getStageSummary(data) {
+    return groupBy(data, "stage");
+  }
+
+
+  function getSectorSummary(data) {
+    return groupBy(data, "sector");
+  }
+
+
+  function getOwnerSummary(data) {
+    return groupBy(data, "owner");
+  }
+
+
+  /* ==========================================================
+     TOP OPPORTUNITIES
+     ========================================================== */
+
+  function getTopOpportunities(data) {
+    return data
+      .slice()
+      .sort(function (a, b) {
+        const valueDifference =
+          parseNumber(b.value) - parseNumber(a.value);
+
+        if (valueDifference !== 0) {
+          return valueDifference;
+        }
+
+        return (
+          parseNumber(b.probability) -
+          parseNumber(a.probability)
         );
+      })
+      .slice(0, CONFIG.MAX_OPPORTUNITIES);
+  }
 
 
-        showAlert(
-            error.message
-        );
+  /* ==========================================================
+     UPDATE DASHBOARD
+     ========================================================== */
 
+  function updateDashboard(data) {
+    const records = Array.isArray(data) ? data : [];
+
+    const kpis = calculateKPIs(records);
+
+    updateKPICards(kpis);
+
+    updateOpportunityTables(records);
+
+    updateSummaryLists(records);
+
+    updateCharts(records);
+
+    updateRecordCount(records);
+
+    updateLastUpdated();
+
+    document.dispatchEvent(
+      new CustomEvent("anytimeDieselDataLoaded", {
+        detail: {
+          data: records,
+          kpis: kpis
+        }
+      })
+    );
+  }
+
+
+  /* ==========================================================
+     KPI CARD UPDATE
+     ========================================================== */
+
+  function updateKPICards(kpis) {
+    const currencyValues = [
+      kpis.totalPipeline,
+      kpis.weightedPipeline,
+      kpis.wonValue,
+      kpis.lostValue
+    ];
+
+    // Common IDs
+    setText(
+      [
+        "#totalPipeline",
+        "#total-pipeline",
+        "#pipelineValue",
+        "#pipeline-value",
+        "[data-kpi='total-pipeline']"
+      ],
+      formatCurrency(currencyValues[0])
+    );
+
+    setText(
+      [
+        "#weightedPipeline",
+        "#weighted-pipeline",
+        "#weightedValue",
+        "#weighted-value",
+        "[data-kpi='weighted-pipeline']"
+      ],
+      formatCurrency(currencyValues[1])
+    );
+
+    setText(
+      [
+        "#openOpportunities",
+        "#open-opportunities",
+        "#opportunityCount",
+        "#opportunity-count",
+        "[data-kpi='open-opportunities']"
+      ],
+      formatNumber(kpis.openOpportunities)
+    );
+
+    setText(
+      [
+        "#averageProbability",
+        "#average-probability",
+        "#avgProbability",
+        "#avg-probability",
+        "[data-kpi='average-probability']"
+      ],
+      formatPercent(kpis.averageProbability)
+    );
+
+    setText(
+      [
+        "#wonValue",
+        "#won-value",
+        "[data-kpi='won-value']"
+      ],
+      formatCurrency(kpis.wonValue)
+    );
+
+    setText(
+      [
+        "#lostValue",
+        "#lost-value",
+        "[data-kpi='lost-value']"
+      ],
+      formatCurrency(kpis.lostValue)
+    );
+
+    setText(
+      [
+        "#wonCount",
+        "#won-count",
+        "[data-kpi='won-count']"
+      ],
+      formatNumber(kpis.wonCount)
+    );
+
+    setText(
+      [
+        "#lostCount",
+        "#lost-count",
+        "[data-kpi='lost-count']"
+      ],
+      formatNumber(kpis.lostCount)
+    );
+  }
+
+
+  /* ==========================================================
+     OPPORTUNITY TABLES
+     ========================================================== */
+
+  function updateOpportunityTables(data) {
+    const opportunities = getTopOpportunities(data);
+
+    const tableSelectors = [
+      "#topOpportunities",
+      "#top-opportunities",
+      "#opportunitiesTableBody",
+      "#opportunities-table-body",
+      "[data-table='top-opportunities']"
+    ];
+
+    const html = opportunities
+      .map(function (record) {
+        return `
+          <tr>
+            <td>${escapeHTML(record.company)}</td>
+            <td>${escapeHTML(record.sector)}</td>
+            <td>${formatCurrency(record.value)}</td>
+            <td>${escapeHTML(record.stage)}</td>
+            <td>${formatPercent(record.probability)}</td>
+            <td>${escapeHTML(record.owner)}</td>
+            <td>${escapeHTML(record.month)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    tableSelectors.forEach(function (selector) {
+      const element = $(selector);
+
+      if (!element) {
+        return;
+      }
+
+      if (element.tagName === "TBODY") {
+        element.innerHTML = html;
+        return;
+      }
+
+      const tbody = element.querySelector("tbody");
+
+      if (tbody) {
+        tbody.innerHTML = html;
+      } else {
+        element.innerHTML = html;
+      }
+    });
+  }
+
+
+  /* ==========================================================
+     SUMMARY LISTS
+     ========================================================== */
+
+  function updateSummaryLists(data) {
+    const stageSummary = getStageSummary(data);
+    const sectorSummary = getSectorSummary(data);
+    const ownerSummary = getOwnerSummary(data);
+
+    renderSummaryList(
+      [
+        "#pipelineByStage",
+        "#pipeline-by-stage",
+        "[data-summary='stage']"
+      ],
+      stageSummary
+    );
+
+    renderSummaryList(
+      [
+        "#pipelineBySector",
+        "#pipeline-by-sector",
+        "[data-summary='sector']"
+      ],
+      sectorSummary
+    );
+
+    renderSummaryList(
+      [
+        "#pipelineByOwner",
+        "#pipeline-by-owner",
+        "[data-summary='owner']"
+      ],
+      ownerSummary
+    );
+  }
+
+
+  function renderSummaryList(selectors, groups) {
+    const html = groups
+      .map(function (group) {
+        return `
+          <div class="summary-row">
+            <div class="summary-row-main">
+              <span class="summary-name">
+                ${escapeHTML(group.name)}
+              </span>
+
+              <span class="summary-count">
+                ${formatNumber(group.count)}
+              </span>
+            </div>
+
+            <div class="summary-row-value">
+              ${formatCurrency(group.value)}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    selectors.forEach(function (selector) {
+      const element = $(selector);
+
+      if (element) {
+        element.innerHTML =
+          html ||
+          `<div class="empty-state">No data available</div>`;
+      }
+    });
+  }
+
+
+  /* ==========================================================
+     CHART SUPPORT
+     ========================================================== */
+
+  function updateCharts(data) {
+    const stageSummary = getStageSummary(data);
+    const sectorSummary = getSectorSummary(data);
+
+    /*
+     * If Chart.js is already included in index.html,
+     * update charts when matching canvas IDs exist.
+     */
+
+    if (
+      window.Chart &&
+      $("#pipelineByStageChart")
+    ) {
+      createOrUpdateChart(
+        "pipelineByStageChart",
+        "bar",
+        stageSummary.map(function (item) {
+          return item.name;
+        }),
+        stageSummary.map(function (item) {
+          return item.value;
+        })
+      );
     }
 
-}
+    if (
+      window.Chart &&
+      $("#pipelineBySectorChart")
+    ) {
+      createOrUpdateChart(
+        "pipelineBySectorChart",
+        "doughnut",
+        sectorSummary.map(function (item) {
+          return item.name;
+        }),
+        sectorSummary.map(function (item) {
+          return item.value;
+        })
+      );
+    }
+  }
 
 
-/* ---------------------------------------
-   CONNECTION
---------------------------------------- */
+  const chartInstances = {};
 
 
-function setConnection(
-    online,
-    text
-) {
+  function createOrUpdateChart(
+    canvasId,
+    type,
+    labels,
+    values
+  ) {
+    const canvas = document.getElementById(canvasId);
 
-    const dot =
-        document.getElementById(
-            "connectionDot"
-        );
+    if (!canvas || !window.Chart) {
+      return;
+    }
 
-    const label =
-        document.getElementById(
-            "connectionText"
-        );
+    if (chartInstances[canvasId]) {
+      chartInstances[canvasId].destroy();
+    }
+
+    chartInstances[canvasId] = new Chart(canvas, {
+      type: type,
+
+      data: {
+        labels: labels,
+
+        datasets: [
+          {
+            label: "Pipeline Value",
+            data: values,
+
+            borderWidth: 1
+          }
+        ]
+      },
+
+      options: {
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+          legend: {
+            display: type === "doughnut"
+          },
+
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return (
+                  " " +
+                  formatCurrency(context.raw)
+                );
+              }
+            }
+          }
+        },
+
+        scales:
+          type === "doughnut"
+            ? {}
+            : {
+                y: {
+                  beginAtZero: true,
+
+                  ticks: {
+                    callback: function (value) {
+                      return formatCurrency(value);
+                    }
+                  }
+                }
+              }
+      }
+    });
+  }
 
 
-    dot.className =
-        "status-dot " +
-        (online ? "online" : "offline");
+  /* ==========================================================
+     RECORD COUNT
+     ========================================================== */
+
+  function updateRecordCount(data) {
+    const count = Array.isArray(data)
+      ? data.length
+      : 0;
+
+    setText(
+      [
+        "#recordCount",
+        "#record-count",
+        "#dataCount",
+        "#data-count",
+        "[data-record-count]"
+      ],
+      formatNumber(count)
+    );
+  }
 
 
-    label.textContent =
-        text;
+  /* ==========================================================
+     LAST UPDATED
+     ========================================================== */
 
-}
+  function updateLastUpdated() {
+    if (!state.lastUpdated) {
+      return;
+    }
+
+    const time = state.lastUpdated.toLocaleString(
+      "en-IN",
+      {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }
+    );
+
+    setText(
+      [
+        "#lastUpdated",
+        "#last-updated",
+        "#dataLastUpdated",
+        "#data-last-updated",
+        "[data-last-updated]"
+      ],
+      "Updated " + time
+    );
+  }
 
 
-function showAlert(message) {
+  /* ==========================================================
+     LOADING STATE
+     ========================================================== */
 
-    document
-        .getElementById("alertBox")
-        .classList.remove("hidden");
+  function showLoadingState() {
+    setText(
+      [
+        "#dataStatus",
+        "#data-status",
+        "[data-status]"
+      ],
+      "Loading sales data..."
+    );
+
+    $all(
+      "[data-loading], .data-loading"
+    ).forEach(function (element) {
+      element.style.display = "";
+    });
+  }
 
 
-    document
-        .getElementById("alertMessage")
-        .textContent =
+  function hideLoadingState() {
+    $all(
+      "[data-loading], .data-loading"
+    ).forEach(function (element) {
+      element.style.display = "none";
+    });
+
+    setText(
+      [
+        "#dataStatus",
+        "#data-status",
+        "[data-status]"
+      ],
+      "Live"
+    );
+  }
+
+
+  /* ==========================================================
+     ERROR STATE
+     ========================================================== */
+
+  function showErrorState(error) {
+    console.error(error);
+
+    const message =
+      error && error.message
+        ? error.message
+        : "Unable to load sales data.";
+
+    setText(
+      [
+        "#dataStatus",
+        "#data-status",
+        "[data-status]"
+      ],
+      "Data unavailable"
+    );
+
+    const errorElements = [
+      "#dataError",
+      "#data-error",
+      "[data-error]"
+    ];
+
+    errorElements.forEach(function (selector) {
+      const element = $(selector);
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        "Unable to load Google Sheets data: " +
         message;
 
-}
-
-
-function hideAlert() {
-
-    document
-        .getElementById("alertBox")
-        .classList.add("hidden");
-
-}
-
-
-/* ---------------------------------------
-   FILTERS
---------------------------------------- */
-
-
-function populateFilters() {
-
-    populateSelect(
-        "monthFilter",
-        [
-            "date",
-            "follow-up date",
-            "next follow-up",
-            "invoice date"
-        ]
-    );
-
-
-    populateSelect(
-        "sectorFilter",
-        [
-            "sector",
-            "industry",
-            "customer sector"
-        ]
-    );
-
-
-    populateSelect(
-        "productFilter",
-        [
-            "product",
-            "product/service",
-            "service"
-        ]
-    );
-
-}
-
-
-function populateSelect(
-    elementId,
-    possibleColumns
-) {
-
-    const element =
-        document.getElementById(
-            elementId
-        );
-
-
-    if (!element) return;
-
-
-    const column =
-        findColumn(
-            possibleColumns
-        );
-
-
-    if (!column) return;
-
-
-    const values =
-        [
-            ...new Set(
-                allData
-                    .map(row =>
-                        row[column]
-                    )
-                    .filter(Boolean)
-            )
-        ]
-        .sort();
-
-
-    element.innerHTML =
-        `<option value="all">All</option>`;
-
-
-    values.forEach(value => {
-
-        const option =
-            document.createElement(
-                "option"
-            );
-
-        option.value = value;
-
-        option.textContent = value;
-
-        element.appendChild(
-            option
-        );
-
+      element.style.display = "";
     });
+  }
 
-}
 
+  /* ==========================================================
+     SEARCH
+     ========================================================== */
 
-function applyFilters() {
+  function searchData(searchTerm) {
+    const term = String(searchTerm || "")
+      .trim()
+      .toLowerCase();
 
-    const month =
-        document.getElementById(
-            "monthFilter"
-        ).value;
+    if (!term) {
+      state.filteredData = state.data.slice();
 
+      updateDashboard(state.filteredData);
 
-    const sector =
-        document.getElementById(
-            "sectorFilter"
-        ).value;
-
-
-    const product =
-        document.getElementById(
-            "productFilter"
-        ).value;
-
-
-    const search =
-        normalize(
-            document.getElementById(
-                "searchFilter"
-            ).value
-        );
-
-
-    filteredData =
-        allData.filter(row => {
-
-
-            const rowSector =
-                getValue(
-                    row,
-                    [
-                        "sector",
-                        "industry",
-                        "customer sector"
-                    ]
-                );
-
-
-            const rowProduct =
-                getValue(
-                    row,
-                    [
-                        "product",
-                        "product/service",
-                        "service"
-                    ]
-                );
-
-
-            const rowDate =
-                getValue(
-                    row,
-                    [
-                        "date",
-                        "follow-up date",
-                        "next follow-up"
-                    ]
-                );
-
-
-            if (
-                sector !== "all" &&
-                rowSector !== sector
-            ) {
-
-                return false;
-
-            }
-
-
-            if (
-                product !== "all" &&
-                rowProduct !== product
-            ) {
-
-                return false;
-
-            }
-
-
-            if (
-                month !== "all" &&
-                rowDate &&
-                new Date(rowDate)
-                    .toLocaleString(
-                        "en-IN",
-                        {
-                            month: "long"
-                        }
-                    ) !== month
-            ) {
-
-                return false;
-
-            }
-
-
-            if (search) {
-
-                const searchable =
-                    Object.values(row)
-                        .join(" ")
-                        .toLowerCase();
-
-
-                if (
-                    !searchable.includes(
-                        search
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-            }
-
-
-            return true;
-
-        });
-
-
-    renderDashboard();
-
-}
-
-
-/* ---------------------------------------
-   MAIN RENDER
---------------------------------------- */
-
-
-function renderDashboard() {
-
-    renderKPIs();
-
-    renderSalesChart();
-
-    renderPipelineChart();
-
-    renderTodayFollowups();
-
-    renderUpcomingSchedule();
-
-    renderPaymentAlerts();
-
-    renderProspects();
-
-    renderFollowups();
-
-    renderSchedule();
-
-    renderClients();
-
-    renderPayments();
-
-    renderTargets();
-
-    renderProducts();
-
-    renderAchievements();
-
-    renderReports();
-
-}
-
-
-/* ---------------------------------------
-   KPI
---------------------------------------- */
-
-
-function renderKPIs() {
-
-    let target = 0;
-
-    let sales = 0;
-
-    let pipeline = 0;
-
-    let prospects = 0;
-
-    let followups = 0;
-
-    let clients = 0;
-
-    let payments = 0;
-
-
-    filteredData.forEach(row => {
-
-        target += parseMoney(
-            getValue(
-                row,
-                [
-                    "target",
-                    "monthly target",
-                    "sales target"
-                ]
-            )
-        );
-
-
-        sales += parseMoney(
-            getValue(
-                row,
-                [
-                    "sales",
-                    "achieved sales",
-                    "revenue",
-                    "sales value",
-                    "order value",
-                    "closed value"
-                ]
-            )
-        );
-
-
-        pipeline += parseMoney(
-            getValue(
-                row,
-                [
-                    "pipeline",
-                    "pipeline value",
-                    "opportunity value",
-                    "deal value"
-                ]
-            )
-        );
-
-
-        const type =
-            normalize(
-                getValue(
-                    row,
-                    [
-                        "type",
-                        "lead type",
-                        "record type"
-                    ]
-                )
-            );
-
-
-        const status =
-            normalize(
-                getValue(
-                    row,
-                    [
-                        "status",
-                        "lead status",
-                        "customer status"
-                    ]
-                )
-            );
-
-
-        if (
-            type.includes("prospect") ||
-            type.includes("lead") ||
-            status.includes("prospect") ||
-            status.includes("lead")
-        ) {
-
-            prospects++;
-
-        }
-
-
-        const followupDate =
-            getValue(
-                row,
-                [
-                    "next follow-up",
-                    "follow-up date",
-                    "followup date"
-                ]
-            );
-
-
-        if (
-            followupDate &&
-            (
-                isToday(followupDate) ||
-                isPast(followupDate)
-            )
-        ) {
-
-            followups++;
-
-        }
-
-
-        if (
-            type.includes("client") ||
-            type.includes("customer") ||
-            status.includes("active")
-        ) {
-
-            clients++;
-
-        }
-
-
-        const paymentStatus =
-            normalize(
-                getValue(
-                    row,
-                    [
-                        "payment status",
-                        "invoice status"
-                    ]
-                )
-            );
-
-
-        if (
-            paymentStatus.includes("pending") ||
-            paymentStatus.includes("overdue") ||
-            paymentStatus.includes("outstanding")
-        ) {
-
-            payments++;
-
-        }
-
-    });
-
-
-    const achievement =
-        target > 0
-            ? (sales / target) * 100
-            : 0;
-
-
-    document.getElementById(
-        "kpiTarget"
-    ).textContent =
-        money(target);
-
-
-    document.getElementById(
-        "kpiSales"
-    ).textContent =
-        money(sales);
-
-
-    document.getElementById(
-        "kpiAchievement"
-    ).textContent =
-        achievement.toFixed(1) + "%";
-
-
-    document.getElementById(
-        "achievementProgress"
-    ).style.width =
-        Math.min(
-            achievement,
-            100
-        ) + "%";
-
-
-    document.getElementById(
-        "kpiPipeline"
-    ).textContent =
-        money(pipeline);
-
-
-    document.getElementById(
-        "kpiProspects"
-    ).textContent =
-        number(prospects);
-
-
-    document.getElementById(
-        "kpiFollowups"
-    ).textContent =
-        number(followups);
-
-
-    document.getElementById(
-        "kpiClients"
-    ).textContent =
-        number(clients);
-
-
-    document.getElementById(
-        "kpiPayments"
-    ).textContent =
-        number(payments);
-
-}
-
-
-function parseMoney(value) {
-
-    return (
-        parseFloat(
-            String(value || "")
-                .replace(/,/g, "")
-                .replace(/[₹$]/g, "")
-                .replace(/%/g, "")
-        ) || 0
-    );
-
-}
-
-
-/* ---------------------------------------
-   SALES CHART
---------------------------------------- */
-
-
-function renderSalesChart() {
-
-    const target =
-        filteredData.reduce(
-            (sum, row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "target",
-                            "monthly target",
-                            "sales target"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const sales =
-        filteredData.reduce(
-            (sum, row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "sales",
-                            "achieved sales",
-                            "revenue",
-                            "sales value",
-                            "order value"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const max =
-        Math.max(
-            target,
-            sales,
-            1
-        );
-
-
-    document.getElementById(
-        "salesChart"
-    ).innerHTML = `
-
-        <div class="chart-bar">
-
-            <div class="chart-bar-value">
-                ${money(target)}
-            </div>
-
-            <div
-                class="chart-bar-fill"
-                style="height:${Math.max(
-                    10,
-                    (target / max) * 160
-                )}px"
-            ></div>
-
-            <div class="chart-bar-label">
-                Target
-            </div>
-
-        </div>
-
-
-        <div class="chart-bar">
-
-            <div class="chart-bar-value">
-                ${money(sales)}
-            </div>
-
-            <div
-                class="chart-bar-fill"
-                style="height:${Math.max(
-                    10,
-                    (sales / max) * 160
-                )}px"
-            ></div>
-
-            <div class="chart-bar-label">
-                Achieved
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-/* ---------------------------------------
-   PIPELINE
---------------------------------------- */
-
-
-function renderPipelineChart() {
-
-    const stages = {};
-
-    filteredData.forEach(row => {
-
-        const stage =
-            getValue(
-                row,
-                [
-                    "stage",
-                    "pipeline stage",
-                    "sales stage",
-                    "status"
-                ]
-            ) || "Unspecified";
-
-
-        const value =
-            parseMoney(
-                getValue(
-                    row,
-                    [
-                        "pipeline value",
-                        "opportunity value",
-                        "deal value",
-                        "pipeline"
-                    ]
-                )
-            );
-
-
-        stages[stage] =
-            (stages[stage] || 0) +
-            value;
-
-    });
-
-
-    const entries =
-        Object.entries(stages)
-            .sort(
-                (a,b) =>
-                    b[1] - a[1]
-            )
-            .slice(0,6);
-
-
-    if (!entries.length) {
-
-        document.getElementById(
-            "pipelineChart"
-        ).innerHTML =
-            `<div class="empty">
-                No pipeline data available.
-            </div>`;
-
-        return;
-
+      return state.filteredData;
     }
 
-
-    const max =
-        Math.max(
-            ...entries.map(
-                x => x[1]
-            ),
-            1
+    state.filteredData = state.data.filter(
+      function (record) {
+        return Object.values(record).some(
+          function (value) {
+            return String(value || "")
+              .toLowerCase()
+              .includes(term);
+          }
         );
-
-
-    document.getElementById(
-        "pipelineChart"
-    ).innerHTML =
-        entries.map(
-            ([stage,value]) => `
-
-                <div class="chart-bar">
-
-                    <div class="chart-bar-value">
-                        ${money(value)}
-                    </div>
-
-                    <div
-                        class="chart-bar-fill"
-                        style="height:${Math.max(
-                            10,
-                            value / max * 160
-                        )}px"
-                    ></div>
-
-                    <div class="chart-bar-label">
-                        ${escapeHtml(stage)}
-                    </div>
-
-                </div>
-
-            `
-        ).join("");
-
-}
-
-
-/* ---------------------------------------
-   FOLLOWUPS
---------------------------------------- */
-
-
-function renderTodayFollowups() {
-
-    const items =
-        filteredData.filter(row => {
-
-            const date =
-                getValue(
-                    row,
-                    [
-                        "next follow-up",
-                        "follow-up date",
-                        "followup date"
-                    ]
-                );
-
-            return isToday(date);
-
-        }).slice(0,8);
-
-
-    document.getElementById(
-        "todayFollowups"
-    ).innerHTML =
-        items.length
-            ? items.map(row => `
-
-                <div class="list-item">
-
-                    <div class="list-title">
-                        ${escapeHtml(
-                            getCompany(row)
-                        )}
-                    </div>
-
-                    <div class="list-meta">
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "contact",
-                                    "contact person",
-                                    "person"
-                                ]
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-            `).join("")
-            : `<div class="empty">
-                No follow-ups scheduled for today.
-            </div>`;
-
-}
-
-
-function renderUpcomingSchedule() {
-
-    const items =
-        filteredData
-            .filter(row => {
-
-                const date =
-                    getValue(
-                        row,
-                        [
-                            "next follow-up",
-                            "follow-up date",
-                            "schedule date",
-                            "meeting date"
-                        ]
-                    );
-
-                const d =
-                    dateValue(date);
-
-                if (!d) return false;
-
-                d.setHours(0,0,0,0);
-
-                return d >= today();
-
-            })
-            .sort(
-                (a,b) =>
-                    dateValue(
-                        getValue(
-                            a,
-                            [
-                                "next follow-up",
-                                "follow-up date",
-                                "schedule date"
-                            ]
-                        )
-                    ) -
-                    dateValue(
-                        getValue(
-                            b,
-                            [
-                                "next follow-up",
-                                "follow-up date",
-                                "schedule date"
-                            ]
-                        )
-                    )
-            )
-            .slice(0,8);
-
-
-    document.getElementById(
-        "upcomingSchedule"
-    ).innerHTML =
-        items.length
-            ? items.map(row => `
-
-                <div class="list-item">
-
-                    <div class="list-title">
-                        ${escapeHtml(
-                            getCompany(row)
-                        )}
-                    </div>
-
-                    <div class="list-meta">
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "next follow-up",
-                                    "follow-up date",
-                                    "schedule date"
-                                ]
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-            `).join("")
-            : `<div class="empty">
-                No upcoming schedule.
-            </div>`;
-
-}
-
-
-function renderPaymentAlerts() {
-
-    const items =
-        filteredData.filter(row => {
-
-            const status =
-                normalize(
-                    getValue(
-                        row,
-                        [
-                            "payment status",
-                            "invoice status"
-                        ]
-                    )
-                );
-
-            return (
-                status.includes("pending") ||
-                status.includes("overdue") ||
-                status.includes("outstanding")
-            );
-
-        }).slice(0,8);
-
-
-    document.getElementById(
-        "paymentAlerts"
-    ).innerHTML =
-        items.length
-            ? items.map(row => `
-
-                <div class="list-item">
-
-                    <div class="list-title">
-                        ${escapeHtml(
-                            getCompany(row)
-                        )}
-                    </div>
-
-                    <div class="list-meta">
-                        ${money(
-                            getValue(
-                                row,
-                                [
-                                    "outstanding",
-                                    "outstanding amount",
-                                    "amount due",
-                                    "invoice amount"
-                                ]
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-            `).join("")
-            : `<div class="empty">
-                No payment alerts.
-            </div>`;
-
-}
-
-
-/* ---------------------------------------
-   TABLES
---------------------------------------- */
-
-
-function renderProspects() {
-
-    const rows =
-        filteredData
-            .filter(row => {
-
-                const status =
-                    normalize(
-                        getValue(
-                            row,
-                            [
-                                "status",
-                                "lead status",
-                                "type"
-                            ]
-                        )
-                    );
-
-                return (
-                    status.includes("prospect") ||
-                    status.includes("lead") ||
-                    status.includes("open")
-                );
-
-            })
-            .slice(0,100);
-
-
-    document.getElementById(
-        "prospectsTable"
-    ).innerHTML =
-        rows.length
-            ? rows.map(row => `
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            ${escapeHtml(
-                                getCompany(row)
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "contact",
-                                    "contact person"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "sector",
-                                    "industry"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "product",
-                                    "product/service",
-                                    "service"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${statusBadge(
-                            getValue(
-                                row,
-                                [
-                                    "stage",
-                                    "status"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${money(
-                            getValue(
-                                row,
-                                [
-                                    "pipeline value",
-                                    "opportunity value",
-                                    "deal value"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "next follow-up",
-                                    "follow-up date"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                </tr>
-
-            `).join("")
-            : emptyRow(
-                7,
-                "No prospect records found."
-            );
-
-}
-
-
-function renderFollowups() {
-
-    const rows =
-        filteredData
-            .filter(row =>
-                getValue(
-                    row,
-                    [
-                        "next follow-up",
-                        "follow-up date"
-                    ]
-                )
-            )
-            .slice(0,100);
-
-
-    document.getElementById(
-        "followupsTable"
-    ).innerHTML =
-        rows.length
-            ? rows.map(row => `
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            ${escapeHtml(
-                                getCompany(row)
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "contact",
-                                    "contact person"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "last contact",
-                                    "last follow-up"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "next follow-up",
-                                    "follow-up date"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${statusBadge(
-                            getValue(
-                                row,
-                                [
-                                    "status",
-                                    "follow-up status"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "remarks",
-                                    "notes",
-                                    "comments"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                </tr>
-
-            `).join("")
-            : emptyRow(
-                6,
-                "No follow-up records found."
-            );
-
-}
-
-
-function renderClients() {
-
-    const rows =
-        filteredData
-            .filter(row => {
-
-                const type =
-                    normalize(
-                        getValue(
-                            row,
-                            [
-                                "type",
-                                "record type",
-                                "status"
-                            ]
-                        )
-                    );
-
-                return (
-                    type.includes("client") ||
-                    type.includes("customer") ||
-                    type.includes("active")
-                );
-
-            })
-            .slice(0,100);
-
-
-    document.getElementById(
-        "clientsTable"
-    ).innerHTML =
-        rows.length
-            ? rows.map(row => `
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            ${escapeHtml(
-                                getCompany(row)
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "sector",
-                                    "industry"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "product",
-                                    "service"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${money(
-                            getValue(
-                                row,
-                                [
-                                    "monthly business",
-                                    "monthly sales",
-                                    "monthly value"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "last order",
-                                    "last purchase"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${statusBadge(
-                            getValue(
-                                row,
-                                [
-                                    "status"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                </tr>
-
-            `).join("")
-            : emptyRow(
-                6,
-                "No client records found."
-            );
-
-}
-
-
-function renderPayments() {
-
-    let outstanding = 0;
-
-    let overdue = 0;
-
-
-    filteredData.forEach(row => {
-
-        const amount =
-            parseMoney(
-                getValue(
-                    row,
-                    [
-                        "outstanding",
-                        "outstanding amount",
-                        "amount due",
-                        "invoice amount"
-                    ]
-                )
-            );
-
-
-        outstanding += amount;
-
-
-        const status =
-            normalize(
-                getValue(
-                    row,
-                    [
-                        "payment status",
-                        "invoice status"
-                    ]
-                )
-            );
-
-
-        if (
-            status.includes("overdue")
-        ) {
-
-            overdue += amount;
-
+      }
+    );
+
+    updateDashboard(state.filteredData);
+
+    return state.filteredData;
+  }
+
+
+  /* ==========================================================
+     FILTER BY STAGE
+     ========================================================== */
+
+  function filterByStage(stage) {
+    const value = String(stage || "")
+      .trim()
+      .toLowerCase();
+
+    if (!value || value === "all") {
+      state.filteredData = state.data.slice();
+    } else {
+      state.filteredData = state.data.filter(
+        function (record) {
+          return String(record.stage || "")
+            .trim()
+            .toLowerCase() === value;
         }
+      );
+    }
 
+    updateDashboard(state.filteredData);
+
+    return state.filteredData;
+  }
+
+
+  /* ==========================================================
+     FILTER BY SECTOR
+     ========================================================== */
+
+  function filterBySector(sector) {
+    const value = String(sector || "")
+      .trim()
+      .toLowerCase();
+
+    if (!value || value === "all") {
+      state.filteredData = state.data.slice();
+    } else {
+      state.filteredData = state.data.filter(
+        function (record) {
+          return String(record.sector || "")
+            .trim()
+            .toLowerCase() === value;
+        }
+      );
+    }
+
+    updateDashboard(state.filteredData);
+
+    return state.filteredData;
+  }
+
+
+  /* ==========================================================
+     RESET FILTERS
+     ========================================================== */
+
+  function resetFilters() {
+    state.filteredData = state.data.slice();
+
+    updateDashboard(state.filteredData);
+
+    $all(
+      "input[data-dashboard-search], #dashboardSearch, #search"
+    ).forEach(function (input) {
+      input.value = "";
+    });
+
+    $all(
+      "select[data-dashboard-filter]"
+    ).forEach(function (select) {
+      select.value = "all";
+    });
+
+    return state.filteredData;
+  }
+
+
+  /* ==========================================================
+     EVENT LISTENERS
+     ========================================================== */
+
+  function setupEventListeners() {
+    /*
+     * Search inputs
+     */
+
+    $all(
+      [
+        "#dashboardSearch",
+        "#dashboard-search",
+        "#search",
+        "[data-dashboard-search]"
+      ].join(",")
+    ).forEach(function (input) {
+      input.addEventListener(
+        "input",
+        function (event) {
+          searchData(event.target.value);
+        }
+      );
     });
 
 
-    document.getElementById(
-        "paymentOutstanding"
-    ).textContent =
-        money(outstanding);
-
-
-    document.getElementById(
-        "paymentOverdue"
-    ).textContent =
-        money(overdue);
-
-
-    const rows =
-        filteredData.filter(row => {
-
-            const status =
-                normalize(
-                    getValue(
-                        row,
-                        [
-                            "payment status",
-                            "invoice status"
-                        ]
-                    )
-                );
-
-            return (
-                status.includes("pending") ||
-                status.includes("overdue") ||
-                status.includes("outstanding")
-            );
-
-        });
-
-
-    document.getElementById(
-        "paymentsTable"
-    ).innerHTML =
-        rows.length
-            ? rows.map(row => `
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            ${escapeHtml(
-                                getCompany(row)
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "invoice",
-                                    "invoice number"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "invoice date"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "due date"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${money(
-                            getValue(
-                                row,
-                                [
-                                    "invoice amount",
-                                    "amount due",
-                                    "outstanding"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${statusBadge(
-                            getValue(
-                                row,
-                                [
-                                    "payment status",
-                                    "invoice status"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "payment follow-up",
-                                    "next follow-up"
-                                ]
-                            )
-                        )}
-                    </td>
-
-                </tr>
-
-            `).join("")
-            : emptyRow(
-                7,
-                "No pending payment records."
-            );
-
-}
-
-
-function renderSchedule() {
-
-    const rows =
-        filteredData
-            .filter(row =>
-                getValue(
-                    row,
-                    [
-                        "schedule date",
-                        "meeting date",
-                        "next follow-up"
-                    ]
-                )
-            )
-            .slice(0,100);
-
-
-    document.getElementById(
-        "scheduleGrid"
-    ).innerHTML =
-        rows.length
-            ? rows.map(row => `
-
-                <div class="schedule-card">
-
-                    <div class="schedule-date">
-                        ${formatDate(
-                            getValue(
-                                row,
-                                [
-                                    "schedule date",
-                                    "meeting date",
-                                    "next follow-up"
-                                ]
-                            )
-                        )}
-                    </div>
-
-                    <div class="schedule-title">
-                        ${escapeHtml(
-                            getCompany(row)
-                        )}
-                    </div>
-
-                    <div class="schedule-meta">
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "activity",
-                                    "meeting type",
-                                    "task"
-                                ]
-                            )
-                        )}
-                    </div>
-
-                    <div class="schedule-meta">
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "remarks",
-                                    "notes"
-                                ]
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-            `).join("")
-            : `<div class="empty">
-                No scheduled activities.
-            </div>`;
-
-}
-
-
-/* ---------------------------------------
-   TARGETS
---------------------------------------- */
-
-
-function renderTargets() {
-
-    const target =
-        filteredData.reduce(
-            (sum,row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "target",
-                            "monthly target",
-                            "sales target"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const achieved =
-        filteredData.reduce(
-            (sum,row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "sales",
-                            "achieved sales",
-                            "revenue",
-                            "sales value"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const balance =
-        Math.max(
-            target - achieved,
-            0
-        );
-
-
-    document.getElementById(
-        "targetSummary"
-    ).innerHTML = `
-
-        <div class="target-box">
-
-            <h4>
-                Target
-            </h4>
-
-            <div class="target-number">
-                ${money(target)}
-            </div>
-
-        </div>
-
-
-        <div class="target-box">
-
-            <h4>
-                Achieved
-            </h4>
-
-            <div class="target-number">
-                ${money(achieved)}
-            </div>
-
-        </div>
-
-
-        <div class="target-box">
-
-            <h4>
-                Balance
-            </h4>
-
-            <div class="target-number">
-                ${money(balance)}
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-/* ---------------------------------------
-   PRODUCTS
---------------------------------------- */
-
-
-function renderProducts() {
-
-    const products = {};
-
-
-    filteredData.forEach(row => {
-
-        const product =
-            getValue(
-                row,
-                [
-                    "product",
-                    "product/service",
-                    "service"
-                ]
-            ) ||
-            "Unspecified";
-
-
-        const value =
-            parseMoney(
-                getValue(
-                    row,
-                    [
-                        "sales",
-                        "sales value",
-                        "revenue",
-                        "order value"
-                    ]
-                )
-            );
-
-
-        products[product] =
-            (products[product] || 0) +
-            value;
-
+    /*
+     * Stage filters
+     */
+
+    $all(
+      [
+        "#stageFilter",
+        "#stage-filter",
+        "[data-filter-stage]"
+      ].join(",")
+    ).forEach(function (element) {
+      element.addEventListener(
+        "change",
+        function (event) {
+          filterByStage(event.target.value);
+        }
+      );
     });
 
 
-    const entries =
-        Object.entries(products)
-            .sort(
-                (a,b) =>
-                    b[1] - a[1]
-            );
+    /*
+     * Sector filters
+     */
 
-
-    document.getElementById(
-        "productsGrid"
-    ).innerHTML =
-        entries.length
-            ? entries.map(
-                ([product,value]) => `
-
-                    <div class="product-card">
-
-                        <h3>
-                            ${escapeHtml(
-                                product
-                            )}
-                        </h3>
-
-                        <div class="number">
-                            ${money(value)}
-                        </div>
-
-                        <div class="kpi-meta">
-                            Sales value
-                        </div>
-
-                    </div>
-
-                `
-            ).join("")
-            : `<div class="empty">
-                No product data available.
-            </div>`;
-
-}
-
-
-/* ---------------------------------------
-   ACHIEVEMENTS
---------------------------------------- */
-
-
-function renderAchievements() {
-
-    const rows =
-        filteredData.filter(row => {
-
-            const achievement =
-                getValue(
-                    row,
-                    [
-                        "achievement",
-                        "achievement title",
-                        "milestone"
-                    ]
-                );
-
-            return !!achievement;
-
-        });
-
-
-    document.getElementById(
-        "achievementsGrid"
-    ).innerHTML =
-        rows.length
-            ? rows.map(row => `
-
-                <div class="achievement-card">
-
-                    <div class="achievement-icon">
-                        🏆
-                    </div>
-
-                    <h3>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "achievement",
-                                    "achievement title",
-                                    "milestone"
-                                ]
-                            )
-                        )}
-                    </h3>
-
-                    <p>
-                        ${escapeHtml(
-                            getValue(
-                                row,
-                                [
-                                    "remarks",
-                                    "description",
-                                    "notes"
-                                ]
-                            )
-                        )}
-                    </p>
-
-                </div>
-
-            `).join("")
-            : `
-
-                <div class="achievement-card">
-
-                    <div class="achievement-icon">
-                        🏆
-                    </div>
-
-                    <h3>
-                        Start Building Your Achievement Log
-                    </h3>
-
-                    <p>
-                        Add achievement records to your Google Sheet
-                        to display them here.
-                    </p>
-
-                </div>
-
-            `;
-
-}
-
-
-/* ---------------------------------------
-   REPORTS
---------------------------------------- */
-
-
-function renderReports() {
-
-    renderSectorReport();
-
-    renderProductReport();
-
-    renderManagementSummary();
-
-}
-
-
-function renderSectorReport() {
-
-    const values = {};
-
-
-    filteredData.forEach(row => {
-
-        const sector =
-            getValue(
-                row,
-                [
-                    "sector",
-                    "industry",
-                    "customer sector"
-                ]
-            ) ||
-            "Unspecified";
-
-
-        const sales =
-            parseMoney(
-                getValue(
-                    row,
-                    [
-                        "sales",
-                        "sales value",
-                        "revenue",
-                        "order value"
-                    ]
-                )
-            );
-
-
-        values[sector] =
-            (values[sector] || 0) +
-            sales;
-
+    $all(
+      [
+        "#sectorFilter",
+        "#sector-filter",
+        "[data-filter-sector]"
+      ].join(",")
+    ).forEach(function (element) {
+      element.addEventListener(
+        "change",
+        function (event) {
+          filterBySector(event.target.value);
+        }
+      );
     });
 
 
-    renderReportRows(
-        "sectorReport",
-        values
+    /*
+     * Refresh buttons
+     */
+
+    $all(
+      [
+        "#refreshData",
+        "#refresh-data",
+        "[data-refresh-data]"
+      ].join(",")
+    ).forEach(function (button) {
+      button.addEventListener(
+        "click",
+        async function () {
+          await fetchDashboardData(true);
+        }
+      );
+    });
+
+
+    /*
+     * Reset filters
+     */
+
+    $all(
+      [
+        "#resetFilters",
+        "#reset-filters",
+        "[data-reset-filters]"
+      ].join(",")
+    ).forEach(function (button) {
+      button.addEventListener(
+        "click",
+        function () {
+          resetFilters();
+        }
+      );
+    });
+  }
+
+
+  /* ==========================================================
+     AUTO-REFRESH
+     ========================================================== */
+
+  function startAutoRefresh() {
+    setInterval(
+      function () {
+        fetchDashboardData(true);
+      },
+      5 * 60 * 1000
+    );
+  }
+
+
+  /* ==========================================================
+     INITIALIZATION
+     ========================================================== */
+
+  async function initializeDashboard() {
+    console.log(
+      "Anytime Diesel BOSS Dashboard initializing..."
     );
 
-}
+    setupEventListeners();
 
+    await fetchDashboardData(false);
 
-function renderProductReport() {
+    startAutoRefresh();
 
-    const values = {};
-
-
-    filteredData.forEach(row => {
-
-        const product =
-            getValue(
-                row,
-                [
-                    "product",
-                    "product/service",
-                    "service"
-                ]
-            ) ||
-            "Unspecified";
-
-
-        const sales =
-            parseMoney(
-                getValue(
-                    row,
-                    [
-                        "sales",
-                        "sales value",
-                        "revenue",
-                        "order value"
-                    ]
-                )
-            );
-
-
-        values[product] =
-            (values[product] || 0) +
-            sales;
-
-    });
-
-
-    renderReportRows(
-        "productReport",
-        values
+    console.log(
+      "Anytime Diesel BOSS Dashboard initialized."
     );
-
-}
-
-
-function renderReportRows(
-    elementId,
-    values
-) {
-
-    const entries =
-        Object.entries(values)
-            .sort(
-                (a,b) =>
-                    b[1] - a[1]
-            )
-            .slice(0,10);
+  }
 
 
-    const max =
-        Math.max(
-            ...entries.map(
-                x => x[1]
-            ),
-            1
-        );
+  /* ==========================================================
+     PUBLIC API
+     ========================================================== */
 
+  window.AnytimeDieselDashboard = {
+    load: fetchDashboardData,
 
-    document.getElementById(
-        elementId
-    ).innerHTML =
-        entries.length
-            ? entries.map(
-                ([label,value]) => `
+    refresh: function () {
+      return fetchDashboardData(true);
+    },
 
-                    <div class="report-row">
+    search: searchData,
 
-                        <div class="report-label">
-                            ${escapeHtml(label)}
-                        </div>
+    filterStage: filterByStage,
 
-                        <div class="report-track">
+    filterSector: filterBySector,
 
-                            <div
-                                class="report-fill"
-                                style="width:${(
-                                    value / max * 100
-                                )}%"
-                            ></div>
+    resetFilters: resetFilters,
 
-                        </div>
+    getData: function () {
+      return state.data.slice();
+    },
 
-                        <div class="report-value">
-                            ${money(value)}
-                        </div>
+    getFilteredData: function () {
+      return state.filteredData.slice();
+    },
 
-                    </div>
+    getKPIs: function () {
+      return calculateKPIs(state.data);
+    },
 
-                `
-            ).join("")
-            : `<div class="empty">
-                No report data available.
-            </div>`;
+    getStageSummary: function () {
+      return getStageSummary(state.data);
+    },
 
-}
+    getSectorSummary: function () {
+      return getSectorSummary(state.data);
+    },
 
-
-function renderManagementSummary() {
-
-    const sales =
-        filteredData.reduce(
-            (sum,row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "sales",
-                            "sales value",
-                            "revenue"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const target =
-        filteredData.reduce(
-            (sum,row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "target",
-                            "monthly target"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const pipeline =
-        filteredData.reduce(
-            (sum,row) =>
-                sum +
-                parseMoney(
-                    getValue(
-                        row,
-                        [
-                            "pipeline value",
-                            "opportunity value",
-                            "deal value"
-                        ]
-                    )
-                ),
-            0
-        );
-
-
-    const achievement =
-        target > 0
-            ? sales / target * 100
-            : 0;
-
-
-    document.getElementById(
-        "managementSummary"
-    ).innerHTML = `
-
-        <p>
-            <strong>Sales Performance:</strong>
-            Current recorded sales are
-            ${money(sales)}
-            against a target of
-            ${money(target)},
-            representing
-            ${achievement.toFixed(1)}%
-            achievement.
-        </p>
-
-        <p>
-            <strong>Pipeline:</strong>
-            Current recorded pipeline value is
-            ${money(pipeline)}.
-        </p>
-
-        <p>
-            <strong>Management Focus:</strong>
-            Continue prioritising high-value prospects,
-            overdue follow-ups, active opportunities and
-            pending payment collections.
-        </p>
-
-    `;
-
-}
-
-
-/* ---------------------------------------
-   UTILITIES
---------------------------------------- */
-
-
-function getCompany(row) {
-
-    return getValue(
-        row,
-        [
-            "company",
-            "company name",
-            "customer",
-            "customer name",
-            "client",
-            "client name",
-            "organization",
-            "organisation"
-        ]
-    ) || "Unnamed";
-
-}
-
-
-function statusBadge(value) {
-
-    const status =
-        normalize(value);
-
-
-    let cls =
-        "badge-neutral";
-
-
-    if (
-        status.includes("won") ||
-        status.includes("active") ||
-        status.includes("completed") ||
-        status.includes("paid")
-    ) {
-
-        cls =
-            "badge-success";
-
+    getOwnerSummary: function () {
+      return getOwnerSummary(state.data);
     }
-
-
-    if (
-        status.includes("pending") ||
-        status.includes("follow") ||
-        status.includes("open") ||
-        status.includes("progress")
-    ) {
-
-        cls =
-            "badge-warning";
-
-    }
-
-
-    if (
-        status.includes("overdue") ||
-        status.includes("lost") ||
-        status.includes("cancel")
-    ) {
-
-        cls =
-            "badge-danger";
-
-    }
-
-
-    return `
-        <span class="badge ${cls}">
-            ${escapeHtml(
-                value || "—"
-            )}
-        </span>
-    `;
-
-}
-
-
-function emptyRow(
-    colspan,
-    text
-) {
-
-    return `
-        <tr>
-
-            <td
-                colspan="${colspan}"
-                style="text-align:center"
-            >
-
-                <span class="empty">
-                    ${text}
-                </span>
-
-            </td>
-
-        </tr>
-    `;
-
-}
-
-
-function escapeHtml(value) {
-
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-function updateTime() {
-
-    document.getElementById(
-        "lastUpdated"
-    ).textContent =
-        new Date().toLocaleString(
-            "en-IN",
-            {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-
-}
-
-
-/* ---------------------------------------
-   NAVIGATION
---------------------------------------- */
-
-
-function setupNavigation() {
-
-    document
-        .querySelectorAll(
-            ".nav-item"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    document
-                        .querySelectorAll(
-                            ".nav-item"
-                        )
-                        .forEach(
-                            item =>
-                                item.classList.remove(
-                                    "active"
-                                )
-                        );
-
-
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    const section =
-                        button.dataset.section;
-
-
-                    document
-                        .querySelectorAll(
-                            ".dashboard-section"
-                        )
-                        .forEach(
-                            item =>
-                                item.classList.remove(
-                                    "active"
-                                )
-                        );
-
-
-                    const target =
-                        document.getElementById(
-                            "section-" +
-                            section
-                        );
-
-
-                    if (target) {
-
-                        target.classList.add(
-                            "active"
-                        );
-
-                    }
-
-
-                    const titles = {
-
-                        overview:
-                            "Sales Dashboard",
-
-                        prospects:
-                            "Prospect Management",
-
-                        followups:
-                            "Follow-ups",
-
-                        schedule:
-                            "Schedule & Reminders",
-
-                        clients:
-                            "Existing Clients",
-
-                        payments:
-                            "Payment Follow-ups",
-
-                        targets:
-                            "Sales Targets",
-
-                        products:
-                            "Products & Services",
-
-                        achievements:
-                            "Achievements",
-
-                        reports:
-                            "Sales Reports"
-
-                    };
-
-
-                    document.getElementById(
-                        "pageTitle"
-                    ).textContent =
-                        titles[section] ||
-                        "Sales Dashboard";
-
-                }
-
-            );
-
-        });
-
-}
-
-
-/* ---------------------------------------
-   INIT
---------------------------------------- */
-
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        setupNavigation();
-
-
-        document
-            .getElementById(
-                "refreshButton"
-            )
-            .addEventListener(
-                "click",
-                loadData
-            );
-
-
-        document
-            .getElementById(
-                "monthFilter"
-            )
-            .addEventListener(
-                "change",
-                applyFilters
-            );
-
-
-        document
-            .getElementById(
-                "sectorFilter"
-            )
-            .addEventListener(
-                "change",
-                applyFilters
-            );
-
-
-        document
-            .getElementById(
-                "productFilter"
-            )
-            .addEventListener(
-                "change",
-                applyFilters
-            );
-
-
-        document
-            .getElementById(
-                "searchFilter"
-            )
-            .addEventListener(
-                "input",
-                applyFilters
-            );
-
-
-        loadData();
-
-    }
-);
+  };
+
+
+  /* ==========================================================
+     START
+     ========================================================== */
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initializeDashboard
+    );
+  } else {
+    initializeDashboard();
+  }
+
+})();
