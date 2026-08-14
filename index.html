@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
   <meta
     name="description"
     content="Anytime Diesel - Sales Management Dashboard"
-  />
+  >
 
   <title>Anytime Diesel | Sales Dashboard</title>
 
@@ -19,35 +19,29 @@
   <link
     rel="preconnect"
     href="https://fonts.googleapis.com"
-  />
+  >
 
   <link
     rel="preconnect"
     href="https://fonts.gstatic.com"
     crossorigin
-  />
+  >
 
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
-  />
+  >
 
   <!-- Font Awesome -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
-
-  <!-- Your existing stylesheet -->
-  <link
-    rel="stylesheet"
-    href="css/dashboard.css"
-  />
+  >
 
   <style>
+
     /* =========================================================
-       ANYTIME DIESEL SALES DASHBOARD
-       Self-contained fallback styling
+       GLOBAL
        ========================================================= */
 
     :root {
@@ -95,13 +89,18 @@
 
     button,
     input,
-    select {
+    select,
+    textarea {
       font-family: inherit;
     }
 
     button {
       cursor: pointer;
     }
+
+    /* =========================================================
+       APP
+       ========================================================= */
 
     .app {
       display: flex;
@@ -128,7 +127,7 @@
           #062d4f 100%
         );
 
-      color: white;
+      color: #fff;
 
       z-index: 1000;
 
@@ -144,7 +143,7 @@
       padding: 0 20px;
 
       border-bottom:
-        1px solid rgba(255,255,255,0.12);
+        1px solid rgba(255,255,255,.12);
     }
 
     .brand-mark {
@@ -168,16 +167,22 @@
 
     .brand-text strong {
       display: block;
+
       font-size: 16px;
       font-weight: 800;
+
       letter-spacing: .3px;
     }
 
     .brand-text span {
       display: block;
+
       font-size: 10px;
+
       margin-top: 3px;
+
       opacity: .75;
+
       letter-spacing: 1px;
     }
 
@@ -243,7 +248,9 @@
     .nav button.active {
       background: rgba(255,255,255,.13);
       color: white;
+
       font-weight: 600;
+
       box-shadow:
         inset 3px 0 0 var(--accent);
     }
@@ -254,12 +261,15 @@
 
     .main {
       margin-left: var(--sidebar-width);
-      width: calc(100% - var(--sidebar-width));
+
+      width:
+        calc(100% - var(--sidebar-width));
+
       min-height: 100vh;
     }
 
     .topbar {
-      height: 72px;
+      min-height: 72px;
 
       background: white;
 
@@ -267,13 +277,16 @@
         1px solid var(--border);
 
       display: flex;
+
       align-items: center;
       justify-content: space-between;
 
-      padding: 0 28px;
+      padding: 14px 28px;
 
       position: sticky;
+
       top: 0;
+
       z-index: 100;
     }
 
@@ -284,18 +297,24 @@
 
     .page-heading p {
       color: var(--muted);
+
       font-size: 11px;
+
       margin-top: 4px;
     }
 
     .top-actions {
       display: flex;
+
       align-items: center;
+
       gap: 10px;
     }
 
     .date-badge {
-      border: 1px solid var(--border);
+      border:
+        1px solid var(--border);
+
       background: #fff;
 
       border-radius: 8px;
@@ -303,6 +322,7 @@
       padding: 9px 12px;
 
       font-size: 11px;
+
       color: var(--muted);
     }
 
@@ -310,6 +330,7 @@
       border: 0;
 
       background: var(--primary);
+
       color: white;
 
       padding: 10px 14px;
@@ -317,6 +338,7 @@
       border-radius: 8px;
 
       font-size: 12px;
+
       font-weight: 600;
     }
 
@@ -334,6 +356,7 @@
 
     .data-status {
       display: flex;
+
       align-items: center;
       justify-content: space-between;
 
@@ -341,7 +364,8 @@
 
       background: white;
 
-      border: 1px solid var(--border);
+      border:
+        1px solid var(--border);
 
       border-radius: 9px;
 
@@ -352,7 +376,9 @@
 
     .status-left {
       display: flex;
+
       align-items: center;
+
       gap: 8px;
     }
 
@@ -374,7 +400,7 @@
     }
 
     /* =========================================================
-       KPI CARDS
+       KPI
        ========================================================= */
 
     .kpi-grid {
@@ -428,12 +454,14 @@
       height: 32px;
 
       display: flex;
+
       align-items: center;
       justify-content: center;
 
       border-radius: 8px;
 
       background: var(--primary-light);
+
       color: var(--primary);
 
       font-size: 13px;
@@ -497,12 +525,15 @@
       box-shadow: var(--shadow);
 
       overflow: hidden;
+
+      margin-bottom: 18px;
     }
 
     .panel-header {
       padding: 15px 17px;
 
       display: flex;
+
       align-items: center;
       justify-content: space-between;
 
@@ -517,7 +548,9 @@
 
     .panel-subtitle {
       font-size: 10px;
+
       color: var(--muted);
+
       margin-top: 3px;
     }
 
@@ -533,6 +566,7 @@
       height: 250px;
 
       display: flex;
+
       align-items: flex-end;
 
       gap: 16px;
@@ -540,8 +574,11 @@
       padding:
         15px 10px 5px;
 
-      border-left: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      border-left:
+        1px solid var(--border);
+
+      border-bottom:
+        1px solid var(--border);
     }
 
     .chart-column {
@@ -550,8 +587,11 @@
       height: 100%;
 
       display: flex;
+
       flex-direction: column;
+
       justify-content: flex-end;
+
       align-items: center;
 
       gap: 7px;
@@ -598,6 +638,7 @@
 
     .stage-top {
       display: flex;
+
       justify-content: space-between;
 
       font-size: 11px;
@@ -615,6 +656,7 @@
 
     .progress {
       width: 100%;
+
       height: 7px;
 
       background: #edf0f4;
@@ -682,6 +724,7 @@
 
     .company-name {
       font-weight: 700;
+
       color: var(--text);
     }
 
@@ -691,8 +734,13 @@
 
     .amount {
       font-weight: 700;
+
       white-space: nowrap;
     }
+
+    /* =========================================================
+       BADGES
+       ========================================================= */
 
     .badge {
       display: inline-flex;
@@ -723,45 +771,54 @@
       color: #17713a;
     }
 
+    .badge-won {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-lost {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
     .badge-new {
       background: #f0f1f3;
       color: #555;
     }
 
     /* =========================================================
-       FILTERS
+       BUTTONS
        ========================================================= */
 
-    .filters {
-      display: flex;
+    .btn {
+      border: 0;
 
-      gap: 9px;
-
-      flex-wrap: wrap;
-    }
-
-    .filter {
-      padding: 8px 10px;
-
-      border:
-        1px solid var(--border);
+      padding: 9px 13px;
 
       border-radius: 7px;
 
-      background: white;
-
       font-size: 10px;
 
-      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #f1f3f5;
+
+      color: #374151;
     }
 
     /* =========================================================
-       GOOGLE SHEETS SETUP
+       SETTINGS
        ========================================================= */
 
     .setup {
-      margin-top: 18px;
-
       background: white;
 
       border:
@@ -776,20 +833,24 @@
 
     .setup h3 {
       font-size: 13px;
+
       margin-bottom: 7px;
     }
 
     .setup p {
       color: var(--muted);
+
       font-size: 10px;
+
       line-height: 1.6;
+
       margin-bottom: 13px;
     }
 
     .url-box {
       width: 100%;
 
-      min-height: 74px;
+      min-height: 100px;
 
       resize: vertical;
 
@@ -815,29 +876,8 @@
       margin-top: 10px;
 
       display: flex;
+
       gap: 8px;
-    }
-
-    .btn {
-      border: 0;
-
-      padding: 9px 13px;
-
-      border-radius: 7px;
-
-      font-size: 10px;
-
-      font-weight: 600;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #f1f3f5;
-      color: #374151;
     }
 
     /* =========================================================
@@ -903,6 +943,7 @@
 
       .brand {
         padding: 0;
+
         justify-content: center;
       }
 
@@ -918,7 +959,9 @@
 
       .main {
         margin-left: 72px;
-        width: calc(100% - 72px);
+
+        width:
+          calc(100% - 72px);
       }
 
       .grid-2 {
@@ -930,7 +973,6 @@
     @media (max-width: 650px) {
 
       .topbar {
-        height: auto;
         min-height: 70px;
 
         padding: 14px;
@@ -938,6 +980,7 @@
         gap: 10px;
 
         flex-direction: column;
+
         align-items: flex-start;
       }
 
@@ -1125,7 +1168,7 @@
           Executive Overview
         </h1>
 
-        <p id="pageSubtitle">
+        <p>
           Anytime Diesel — Hyderabad Sales Management
         </p>
 
@@ -1155,7 +1198,7 @@
 
     <div class="content">
 
-      <!-- DATA STATUS -->
+      <!-- STATUS -->
 
       <div class="data-status">
 
@@ -1179,16 +1222,14 @@
       </div>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            OVERVIEW
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-overview"
         class="dashboard-section"
       >
-
-        <!-- KPI CARDS -->
 
         <div class="kpi-grid">
 
@@ -1338,8 +1379,6 @@
         </div>
 
 
-        <!-- CHARTS -->
-
         <div class="grid-2">
 
           <div class="panel">
@@ -1410,8 +1449,6 @@
         </div>
 
 
-        <!-- TOP OPPORTUNITIES -->
-
         <div class="panel">
 
           <div class="panel-header">
@@ -1454,9 +1491,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            PIPELINE
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-pipeline"
@@ -1492,9 +1529,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            OPPORTUNITIES
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-opportunities"
@@ -1530,9 +1567,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            CUSTOMERS
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-customers"
@@ -1568,9 +1605,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            ANALYTICS
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-analytics"
@@ -1595,6 +1632,7 @@
               <div class="stage-row">
 
                 <div class="stage-top">
+
                   <span class="stage-name">
                     Pipeline Coverage
                   </span>
@@ -1605,13 +1643,16 @@
                   >
                     ₹0
                   </span>
+
                 </div>
 
                 <div class="progress">
+
                   <div
                     class="progress-bar"
                     style="width:100%"
                   ></div>
+
                 </div>
 
               </div>
@@ -1620,6 +1661,7 @@
               <div class="stage-row">
 
                 <div class="stage-top">
+
                   <span class="stage-name">
                     Weighted Pipeline
                   </span>
@@ -1630,13 +1672,16 @@
                   >
                     ₹0
                   </span>
+
                 </div>
 
                 <div class="progress">
+
                   <div
                     class="progress-bar"
                     style="width:75%"
                   ></div>
+
                 </div>
 
               </div>
@@ -1645,6 +1690,7 @@
               <div class="stage-row">
 
                 <div class="stage-top">
+
                   <span class="stage-name">
                     High Probability
                   </span>
@@ -1655,13 +1701,16 @@
                   >
                     0
                   </span>
+
                 </div>
 
                 <div class="progress">
+
                   <div
                     class="progress-bar"
                     style="width:50%"
                   ></div>
+
                 </div>
 
               </div>
@@ -1689,6 +1738,7 @@
 
                   <tr>
                     <td>Total Pipeline</td>
+
                     <td
                       class="amount"
                       id="snapshotPipeline"
@@ -1699,6 +1749,7 @@
 
                   <tr>
                     <td>Weighted Pipeline</td>
+
                     <td
                       class="amount"
                       id="snapshotWeighted"
@@ -1709,6 +1760,7 @@
 
                   <tr>
                     <td>Opportunities</td>
+
                     <td
                       class="amount"
                       id="snapshotOpportunities"
@@ -1719,6 +1771,7 @@
 
                   <tr>
                     <td>Accounts</td>
+
                     <td
                       class="amount"
                       id="snapshotAccounts"
@@ -1740,9 +1793,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            TARGETS
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-targets"
@@ -1776,9 +1829,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            REPORTS
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-reports"
@@ -1812,9 +1865,9 @@
       </section>
 
 
-      <!-- =====================================================
+      <!-- ===================================================
            SETTINGS
-           ===================================================== -->
+           =================================================== -->
 
       <section
         id="section-settings"
@@ -1871,704 +1924,787 @@
 
 <script>
 
-  /* =========================================================
-     GOOGLE SHEETS CONFIGURATION
-     ========================================================= */
+/* =========================================================
+   GOOGLE SHEETS CONFIGURATION
+   ========================================================= */
 
-  const GOOGLE_SHEETS_CSV_URL =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
-
-
-  /* =========================================================
-     APPLICATION STATE
-     ========================================================= */
-
-  let salesData = [];
+const GOOGLE_SHEETS_CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
 
 
-  /* =========================================================
-     INITIALIZATION
-     ========================================================= */
+/* =========================================================
+   APPLICATION STATE
+   ========================================================= */
 
-  document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+let salesData = [];
 
-      document.getElementById(
-        "currentDate"
-      ).textContent =
-        new Date().toLocaleDateString(
-          "en-IN",
-          {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-          }
-        );
 
-      document.getElementById(
-        "sheetsUrl"
-      ).value =
-        localStorage.getItem(
-          "anytimeDieselSheetsUrl"
-        ) ||
-        GOOGLE_SHEETS_CSV_URL;
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
 
-      loadData();
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
 
-    }
+    document.getElementById(
+      "currentDate"
+    ).textContent =
+      new Date().toLocaleDateString(
+        "en-IN",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        }
+      );
+
+
+    document.getElementById(
+      "sheetsUrl"
+    ).value =
+      localStorage.getItem(
+        "anytimeDieselSheetsUrl"
+      ) ||
+      GOOGLE_SHEETS_CSV_URL;
+
+
+    loadData();
+
+  }
+);
+
+
+/* =========================================================
+   LOAD DATA
+   ========================================================= */
+
+async function loadData() {
+
+  setStatus(
+    "loading",
+    "Loading Google Sheets data..."
   );
 
+  try {
 
-  /* =========================================================
-     LOAD GOOGLE SHEETS DATA
-     ========================================================= */
-
-  async function loadData() {
-
-    setStatus(
-      "loading",
-      "Loading Google Sheets data..."
-    );
-
-    try {
-
-      const url =
-        localStorage.getItem(
-          "anytimeDieselSheetsUrl"
-        ) ||
-        GOOGLE_SHEETS_CSV_URL;
-
-      if (!url) {
-        throw new Error(
-          "Google Sheets URL is missing."
-        );
-      }
+    const url =
+      localStorage.getItem(
+        "anytimeDieselSheetsUrl"
+      ) ||
+      GOOGLE_SHEETS_CSV_URL;
 
 
-      /*
-       * Important:
-       *
-       * We send the Google Sheets URL to the
-       * Vercel serverless function.
-       *
-       * /api/sheets must accept:
-       *
-       * ?url=GOOGLE_SHEETS_URL
-       */
+    if (!url) {
 
-      const apiUrl =
-        "/api/sheets?url=" +
-        encodeURIComponent(url);
+      throw new Error(
+        "Google Sheets URL is missing."
+      );
+
+    }
 
 
-      const response =
-        await fetch(apiUrl, {
+    /*
+      Google Sheets is fetched through
+      the Vercel serverless API.
+
+      Expected endpoint:
+
+      /api/sheets?url=GOOGLE_SHEETS_URL
+    */
+
+    const apiUrl =
+      "/api/sheets?url=" +
+      encodeURIComponent(url);
+
+
+    const response =
+      await fetch(
+        apiUrl,
+        {
           method: "GET",
           cache: "no-store"
-        });
-
-
-      if (!response.ok) {
-
-        throw new Error(
-          "Server returned HTTP " +
-          response.status
-        );
-
-      }
-
-
-      const result =
-        await response.text();
-
-
-      if (!result.trim()) {
-
-        throw new Error(
-          "Google Sheets returned no data."
-        );
-
-      }
-
-
-      salesData =
-        parseCSV(result);
-
-
-      if (!salesData.length) {
-
-        throw new Error(
-          "No sales records were found."
-        );
-
-      }
-
-
-      renderDashboard();
-
-      setStatus(
-        "online",
-        "Google Sheets connected"
+        }
       );
 
-      document.getElementById(
-        "lastUpdated"
-      ).textContent =
-        "Updated " +
-        new Date().toLocaleTimeString(
-          "en-IN",
-          {
-            hour: "2-digit",
-            minute: "2-digit"
-          }
-        );
 
-    }
+    if (!response.ok) {
 
-    catch (error) {
-
-      console.error(
-        "Dashboard loading error:",
-        error
-      );
-
-      setStatus(
-        "error",
-        "Unable to load Google Sheets data"
-      );
-
-      showError(
-        error.message
+      throw new Error(
+        "Server returned HTTP " +
+        response.status
       );
 
     }
+
+
+    const result =
+      await response.text();
+
+
+    if (!result.trim()) {
+
+      throw new Error(
+        "Google Sheets returned no data."
+      );
+
+    }
+
+
+    salesData =
+      parseCSV(result);
+
+
+    if (!salesData.length) {
+
+      throw new Error(
+        "No sales records were found."
+      );
+
+    }
+
+
+    renderDashboard();
+
+
+    setStatus(
+      "online",
+      "Google Sheets connected"
+    );
+
+
+    document.getElementById(
+      "lastUpdated"
+    ).textContent =
+      "Updated " +
+      new Date().toLocaleTimeString(
+        "en-IN",
+        {
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+      );
 
   }
 
+  catch (error) {
 
-  /* =========================================================
-     CSV PARSER
-     ========================================================= */
-
-  function parseCSV(text) {
-
-    const rows = [];
-
-    let row = [];
-
-    let value = "";
-
-    let insideQuotes = false;
+    console.error(
+      "Dashboard loading error:",
+      error
+    );
 
 
-    for (
-      let i = 0;
-      i < text.length;
-      i++
+    setStatus(
+      "error",
+      "Unable to load Google Sheets data"
+    );
+
+
+    showError(
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CSV PARSER
+   ========================================================= */
+
+function parseCSV(text) {
+
+  const rows = [];
+
+  let row = [];
+
+  let value = "";
+
+  let insideQuotes = false;
+
+
+  for (
+    let i = 0;
+    i < text.length;
+    i++
+  ) {
+
+    const char =
+      text[i];
+
+    const next =
+      text[i + 1];
+
+
+    if (
+      char === '"' &&
+      insideQuotes &&
+      next === '"'
     ) {
 
-      const char =
-        text[i];
+      value += '"';
 
-      const next =
-        text[i + 1];
+      i++;
 
+      continue;
 
-      if (
-        char === '"' &&
-        insideQuotes &&
-        next === '"'
-      ) {
-
-        value += '"';
-
-        i++;
-
-        continue;
-
-      }
+    }
 
 
-      if (char === '"') {
+    if (char === '"') {
 
-        insideQuotes =
-          !insideQuotes;
+      insideQuotes =
+        !insideQuotes;
 
-        continue;
-
-      }
-
-
-      if (
-        char === "," &&
-        !insideQuotes
-      ) {
-
-        row.push(
-          value.trim()
-        );
-
-        value = "";
-
-        continue;
-
-      }
-
-
-      if (
-        (char === "\n" ||
-         char === "\r") &&
-        !insideQuotes
-      ) {
-
-        if (
-          char === "\r" &&
-          next === "\n"
-        ) {
-          i++;
-        }
-
-        row.push(
-          value.trim()
-        );
-
-        if (
-          row.some(
-            cell =>
-              cell !== ""
-          )
-        ) {
-          rows.push(row);
-        }
-
-        row = [];
-
-        value = "";
-
-        continue;
-
-      }
-
-
-      value += char;
+      continue;
 
     }
 
 
     if (
-      value !== "" ||
-      row.length
+      char === "," &&
+      !insideQuotes
     ) {
 
       row.push(
         value.trim()
       );
 
+      value = "";
+
+      continue;
+
+    }
+
+
+    if (
+      (char === "\n" ||
+       char === "\r") &&
+      !insideQuotes
+    ) {
+
+      if (
+        char === "\r" &&
+        next === "\n"
+      ) {
+
+        i++;
+
+      }
+
+
+      row.push(
+        value.trim()
+      );
+
+
       if (
         row.some(
-          cell =>
-            cell !== ""
+          cell => cell !== ""
         )
       ) {
+
         rows.push(row);
+
       }
 
+
+      row = [];
+
+      value = "";
+
+      continue;
+
     }
 
 
-    if (rows.length < 2) {
-      return [];
+    value += char;
+
+  }
+
+
+  if (
+    value !== "" ||
+    row.length
+  ) {
+
+    row.push(
+      value.trim()
+    );
+
+
+    if (
+      row.some(
+        cell => cell !== ""
+      )
+    ) {
+
+      rows.push(row);
+
     }
 
+  }
 
-    const headers =
-      rows[0].map(
-        h =>
-          normalizeHeader(h)
+
+  if (rows.length < 2) {
+
+    return [];
+
+  }
+
+
+  const headers =
+    rows[0].map(
+      normalizeHeader
+    );
+
+
+  return rows
+    .slice(1)
+    .map(row => {
+
+      const object = {};
+
+
+      headers.forEach(
+        (header, index) => {
+
+          object[header] =
+            row[index] !== undefined
+              ? row[index].trim()
+              : "";
+
+        }
       );
 
 
-    return rows
-      .slice(1)
-      .map(row => {
+      return object;
 
-        const object = {};
-
-        headers.forEach(
-          (header, index) => {
-
-            object[header] =
-              row[index] !== undefined
-                ? row[index].trim()
-                : "";
-
-          }
-        );
-
-        return object;
-
-      })
-      .filter(row =>
+    })
+    .filter(
+      row =>
         Object.values(row)
-          .some(value =>
-            value !== ""
+          .some(
+            value =>
+              value !== ""
           )
-      );
+    );
+
+}
+
+
+/* =========================================================
+   HEADER NORMALIZATION
+   ========================================================= */
+
+function normalizeHeader(header) {
+
+  return String(
+    header || ""
+  )
+    .trim()
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9]+/g,
+      "_"
+    )
+    .replace(
+      /^_|_$/g,
+      ""
+    );
+
+}
+
+
+/* =========================================================
+   DATA HELPERS
+   ========================================================= */
+
+function getCompany(row) {
+
+  return (
+    row.company ||
+    row.company_name ||
+    row.account ||
+    row.customer ||
+    "Unnamed Account"
+  );
+
+}
+
+
+function getSector(row) {
+
+  return (
+    row.sector ||
+    row.industry ||
+    row.segment ||
+    "-"
+  );
+
+}
+
+
+function getValue(row) {
+
+  const raw =
+    row.value ||
+    row.amount ||
+    row.opportunity_value ||
+    row.deal_value ||
+    "0";
+
+
+  return parseNumber(raw);
+
+}
+
+
+function getStage(row) {
+
+  return (
+    row.stage ||
+    row.status ||
+    "New"
+  );
+
+}
+
+
+function getProbability(row) {
+
+  let value =
+    parseNumber(
+      row.probability ||
+      row.probability_percent ||
+      0
+    );
+
+
+  if (
+    value > 0 &&
+    value <= 1
+  ) {
+
+    value *= 100;
 
   }
 
 
-  /* =========================================================
-     HEADER NORMALIZATION
-     ========================================================= */
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      value
+    )
+  );
 
-  function normalizeHeader(header) {
+}
 
-    return String(header || "")
-      .trim()
-      .toLowerCase()
+
+function getOwner(row) {
+
+  return (
+    row.owner ||
+    row.sales_owner ||
+    row.assigned_to ||
+    "-"
+  );
+
+}
+
+
+function getMonth(row) {
+
+  return (
+    row.month ||
+    row.expected_month ||
+    row.close_month ||
+    row.expected_close_date ||
+    "-"
+  );
+
+}
+
+
+/* =========================================================
+   NUMBER HELPERS
+   ========================================================= */
+
+function parseNumber(value) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return 0;
+
+  }
+
+
+  const clean =
+    String(value)
       .replace(
-        /[^a-z0-9]+/g,
-        "_"
-      )
-      .replace(
-        /^_|_$/g,
+        /₹/g,
         ""
-      );
-
-  }
-
-
-  /* =========================================================
-     DATA HELPERS
-     ========================================================= */
-
-  function getCompany(row) {
-
-    return (
-      row.company ||
-      row.company_name ||
-      row.account ||
-      row.customer ||
-      "Unnamed Account"
-    );
-
-  }
-
-
-  function getSector(row) {
-
-    return (
-      row.sector ||
-      row.industry ||
-      row.segment ||
-      "-"
-    );
-
-  }
-
-
-  function getValue(row) {
-
-    const raw =
-      row.value ||
-      row.amount ||
-      row.opportunity_value ||
-      row.deal_value ||
-      "0";
-
-    return parseNumber(raw);
-
-  }
-
-
-  function getStage(row) {
-
-    return (
-      row.stage ||
-      row.status ||
-      "New"
-    );
-
-  }
-
-
-  function getProbability(row) {
-
-    let value =
-      parseNumber(
-        row.probability ||
-        row.probability_percent ||
-        0
-      );
-
-
-    if (
-      value > 0 &&
-      value <= 1
-    ) {
-      value *= 100;
-    }
-
-
-    return Math.max(
-      0,
-      Math.min(
-        100,
-        value
       )
-    );
-
-  }
-
-
-  function getOwner(row) {
-
-    return (
-      row.owner ||
-      row.sales_owner ||
-      row.assigned_to ||
-      "-"
-    );
-
-  }
+      .replace(
+        /,/g,
+        ""
+      )
+      .replace(
+        /%/g,
+        ""
+      )
+      .trim();
 
 
-  function getMonth(row) {
-
-    return (
-      row.month ||
-      row.expected_month ||
-      row.close_month ||
-      "-"
-    );
-
-  }
+  const number =
+    parseFloat(clean);
 
 
-  function parseNumber(value) {
+  return Number.isFinite(number)
+    ? number
+    : 0;
 
-    if (
-      value === null ||
-      value === undefined
-    ) {
-      return 0;
+}
+
+
+function formatCurrency(value) {
+
+  return new Intl.NumberFormat(
+    "en-IN",
+    {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
     }
+  ).format(
+    value || 0
+  );
+
+}
 
 
-    const clean =
-      String(value)
-        .replace(
-          /₹/g,
-          ""
-        )
-        .replace(
-          /,/g,
-          ""
-        )
-        .replace(
-          /%/g,
-          ""
-        )
-        .trim();
+function formatNumber(value) {
+
+  return new Intl.NumberFormat(
+    "en-IN"
+  ).format(
+    value || 0
+  );
+
+}
 
 
-    const number =
-      parseFloat(clean);
+function shortCurrency(value) {
+
+  if (value >= 10000000) {
+
+    return (
+      "₹" +
+      (value / 10000000)
+        .toFixed(1) +
+      "Cr"
+    );
+
+  }
 
 
-    return Number.isFinite(number)
-      ? number
+  if (value >= 100000) {
+
+    return (
+      "₹" +
+      (value / 100000)
+        .toFixed(1) +
+      "L"
+    );
+
+  }
+
+
+  if (value >= 1000) {
+
+    return (
+      "₹" +
+      (value / 1000)
+        .toFixed(1) +
+      "K"
+    );
+
+  }
+
+
+  return "₹" + value;
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+function renderDashboard() {
+
+  renderKPIs();
+
+  renderMonthlyChart();
+
+  renderStageChart();
+
+  renderTopOpportunities();
+
+  renderPipelineTable();
+
+  renderOpportunitiesTable();
+
+  renderCustomersTable();
+
+  renderAnalytics();
+
+}
+
+
+/* =========================================================
+   KPI
+   ========================================================= */
+
+function renderKPIs() {
+
+  const totalValue =
+    salesData.reduce(
+      (sum, row) =>
+        sum + getValue(row),
+      0
+    );
+
+
+  const opportunityCount =
+    salesData.length;
+
+
+  const accounts =
+    new Set(
+      salesData.map(
+        getCompany
+      )
+    ).size;
+
+
+  const avgProbability =
+    opportunityCount
+      ? salesData.reduce(
+          (sum, row) =>
+            sum +
+            getProbability(row),
+          0
+        ) /
+        opportunityCount
       : 0;
 
-  }
+
+  const highPriority =
+    salesData.filter(
+      row =>
+        getProbability(row) >= 70
+    ).length;
 
 
-  function formatCurrency(value) {
-
-    return new Intl.NumberFormat(
-      "en-IN",
-      {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0
-      }
-    ).format(value || 0);
-
-  }
-
-
-  function formatNumber(value) {
-
-    return new Intl.NumberFormat(
-      "en-IN"
-    ).format(value || 0);
-
-  }
+  const weightedValue =
+    salesData.reduce(
+      (sum, row) =>
+        sum +
+        (
+          getValue(row) *
+          getProbability(row) /
+          100
+        ),
+      0
+    );
 
 
-  /* =========================================================
-     RENDER DASHBOARD
-     ========================================================= */
-
-  function renderDashboard() {
-
-    renderKPIs();
-
-    renderMonthlyChart();
-
-    renderStageChart();
-
-    renderTopOpportunities();
-
-    renderPipelineTable();
-
-    renderOpportunitiesTable();
-
-    renderCustomersTable();
-
-    renderAnalytics();
-
-  }
+  document.getElementById(
+    "pipelineValue"
+  ).textContent =
+    formatCurrency(
+      totalValue
+    );
 
 
-  /* =========================================================
-     KPI CARDS
-     ========================================================= */
-
-  function renderKPIs() {
-
-    const totalValue =
-      salesData.reduce(
-        (sum, row) =>
-          sum + getValue(row),
-        0
-      );
-
-
-    const opportunityCount =
-      salesData.length;
-
-
-    const accounts =
-      new Set(
-        salesData.map(
-          getCompany
-        )
-      ).size;
-
-
-    const avgProbability =
+  document.getElementById(
+    "openOpportunities"
+  ).textContent =
+    formatNumber(
       opportunityCount
-        ? salesData.reduce(
-            (sum, row) =>
-              sum +
-              getProbability(row),
-            0
-          ) /
-          opportunityCount
-        : 0;
+    );
 
 
-    const highPriority =
-      salesData.filter(
-        row =>
-          getProbability(row) >= 70
-      ).length;
+  document.getElementById(
+    "accountCount"
+  ).textContent =
+    formatNumber(
+      accounts
+    );
 
 
-    const weightedValue =
-      salesData.reduce(
-        (sum, row) =>
-          sum +
-          (
-            getValue(row) *
-            getProbability(row) /
-            100
-          ),
-        0
+  document.getElementById(
+    "averageProbability"
+  ).textContent =
+    Math.round(
+      avgProbability
+    ) + "%";
+
+
+  document.getElementById(
+    "highPriority"
+  ).textContent =
+    formatNumber(
+      highPriority
+    );
+
+
+  document.getElementById(
+    "weightedValue"
+  ).textContent =
+    formatCurrency(
+      weightedValue
+    );
+
+}
+
+
+/* =========================================================
+   MONTHLY CHART
+   ========================================================= */
+
+function renderMonthlyChart() {
+
+  const container =
+    document.getElementById(
+      "monthlyChart"
+    );
+
+
+  if (!salesData.length) {
+
+    container.innerHTML =
+      emptyMessage(
+        "No monthly data available."
       );
 
-
-    document.getElementById(
-      "pipelineValue"
-    ).textContent =
-      formatCurrency(
-        totalValue
-      );
-
-
-    document.getElementById(
-      "openOpportunities"
-    ).textContent =
-      formatNumber(
-        opportunityCount
-      );
-
-
-    document.getElementById(
-      "accountCount"
-    ).textContent =
-      formatNumber(
-        accounts
-      );
-
-
-    document.getElementById(
-      "averageProbability"
-    ).textContent =
-      Math.round(
-        avgProbability
-      ) + "%";
-
-
-    document.getElementById(
-      "highPriority"
-    ).textContent =
-      formatNumber(
-        highPriority
-      );
-
-
-    document.getElementById(
-      "weightedValue"
-    ).textContent =
-      formatCurrency(
-        weightedValue
-      );
+    return;
 
   }
 
 
-  /* =========================================================
-     MONTHLY CHART
-     ========================================================= */
-
-  function renderMonthlyChart() {
-
-    const container =
-      document.getElementById(
-        "monthlyChart"
-      );
+  const monthly = {};
 
 
-    if (!salesData.length) {
-
-      container.innerHTML =
-        emptyMessage(
-          "No monthly data available."
-        );
-
-      return;
-
-    }
-
-
-    const monthly = {};
-
-
-    salesData.forEach(row => {
+  salesData.forEach(
+    row => {
 
       const month =
         getMonth(row);
@@ -2578,63 +2714,185 @@
 
 
       if (!monthly[month]) {
+
         monthly[month] = 0;
+
       }
+
 
       monthly[month] += value;
 
-    });
+    }
+  );
 
 
-    const entries =
-      Object.entries(monthly)
-        .sort(
-          (a, b) =>
-            b[1] - a[1]
-        )
-        .slice(0, 6)
-        .reverse();
+  const entries =
+    Object.entries(monthly)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .slice(0, 6)
+      .reverse();
 
 
-    const max =
-      Math.max(
-        ...entries.map(
-          item => item[1]
-        ),
-        1
+  const max =
+    Math.max(
+      ...entries.map(
+        item => item[1]
+      ),
+      1
+    );
+
+
+  let html =
+    '<div class="chart">';
+
+
+  entries.forEach(
+    ([month, value]) => {
+
+      const height =
+        Math.max(
+          5,
+          (value / max) * 90
+        );
+
+
+      html += `
+
+        <div class="chart-column">
+
+          <div class="bar-value">
+            ${shortCurrency(value)}
+          </div>
+
+          <div
+            class="bar"
+            style="height:${height}%"
+            title="${escapeHTML(month)}: ${formatCurrency(value)}"
+          ></div>
+
+          <div class="bar-label">
+            ${escapeHTML(month)}
+          </div>
+
+        </div>
+
+      `;
+
+    }
+  );
+
+
+  html +=
+    "</div>";
+
+
+  container.innerHTML =
+    html;
+
+}
+
+
+/* =========================================================
+   STAGE CHART
+   ========================================================= */
+
+function renderStageChart() {
+
+  const container =
+    document.getElementById(
+      "stageChart"
+    );
+
+
+  const stages = {};
+
+
+  salesData.forEach(
+    row => {
+
+      const stage =
+        getStage(row);
+
+      if (!stages[stage]) {
+
+        stages[stage] = 0;
+
+      }
+
+      stages[stage] +=
+        getValue(row);
+
+    }
+  );
+
+
+  const total =
+    Object.values(stages)
+      .reduce(
+        (a, b) =>
+          a + b,
+        0
       );
 
 
-    let html =
-      '<div class="chart">';
+  if (!total) {
+
+    container.innerHTML =
+      emptyMessage(
+        "No stage data available."
+      );
+
+    return;
+
+  }
 
 
-    entries.forEach(
-      ([month, value]) => {
+  let html = "";
 
-        const height =
-          Math.max(
-            5,
-            (value / max) * 90
+
+  Object.entries(stages)
+    .sort(
+      (a, b) =>
+        b[1] - a[1]
+    )
+    .forEach(
+      ([stage, value]) => {
+
+        const percentage =
+          Math.round(
+            value /
+            total *
+            100
           );
 
 
         html += `
 
-          <div class="chart-column">
+          <div class="stage-row">
 
-            <div class="bar-value">
-              ${shortCurrency(value)}
+            <div class="stage-top">
+
+              <span class="stage-name">
+                ${escapeHTML(stage)}
+              </span>
+
+              <span class="stage-count">
+                ${formatCurrency(value)}
+                · ${percentage}%
+              </span>
+
             </div>
 
-            <div
-              class="bar"
-              style="height:${height}%"
-              title="${escapeHTML(month)}: ${formatCurrency(value)}"
-            ></div>
+            <div class="progress">
 
-            <div class="bar-label">
-              ${escapeHTML(month)}
+              <div
+                class="progress-bar"
+                style="width:${percentage}%"
+              ></div>
+
             </div>
 
           </div>
@@ -2645,282 +2903,121 @@
     );
 
 
-    html +=
-      "</div>";
+  container.innerHTML =
+    html;
+
+}
 
 
-    container.innerHTML =
-      html;
+/* =========================================================
+   TOP OPPORTUNITIES
+   ========================================================= */
 
-  }
+function renderTopOpportunities() {
 
-
-  function shortCurrency(value) {
-
-    if (value >= 10000000) {
-      return (
-        "₹" +
-        (value / 10000000)
-          .toFixed(1) +
-        "Cr"
-      );
-    }
-
-
-    if (value >= 100000) {
-      return (
-        "₹" +
-        (value / 100000)
-          .toFixed(1) +
-        "L"
-      );
-    }
-
-
-    if (value >= 1000) {
-      return (
-        "₹" +
-        (value / 1000)
-          .toFixed(1) +
-        "K"
-      );
-    }
-
-
-    return "₹" + value;
-
-  }
-
-
-  /* =========================================================
-     STAGE CHART
-     ========================================================= */
-
-  function renderStageChart() {
-
-    const container =
-      document.getElementById(
-        "stageChart"
-      );
-
-
-    const stages = {};
-
-
-    salesData.forEach(row => {
-
-      const stage =
-        getStage(row);
-
-      if (!stages[stage]) {
-        stages[stage] = 0;
-      }
-
-      stages[stage] +=
-        getValue(row);
-
-    });
-
-
-    const total =
-      Object.values(stages)
-        .reduce(
-          (a, b) => a + b,
-          0
-        );
-
-
-    if (!total) {
-
-      container.innerHTML =
-        emptyMessage(
-          "No stage data available."
-        );
-
-      return;
-
-    }
-
-
-    let html = "";
-
-
-    Object.entries(stages)
+  const rows =
+    [...salesData]
       .sort(
         (a, b) =>
-          b[1] - a[1]
+          getValue(b) -
+          getValue(a)
       )
-      .forEach(
-        ([stage, value]) => {
-
-          const percentage =
-            Math.round(
-              value /
-              total *
-              100
-            );
+      .slice(0, 5);
 
 
-          html += `
+  document.getElementById(
+    "topOpportunities"
+  ).innerHTML =
+    createOpportunityTable(
+      rows
+    );
 
-            <div class="stage-row">
+}
 
-              <div class="stage-top">
 
-                <span class="stage-name">
-                  ${escapeHTML(stage)}
-                </span>
+/* =========================================================
+   PIPELINE TABLE
+   ========================================================= */
 
-                <span class="stage-count">
-                  ${formatCurrency(value)}
-                  · ${percentage}%
-                </span>
+function renderPipelineTable() {
 
-              </div>
+  document.getElementById(
+    "pipelineTable"
+  ).innerHTML =
+    createOpportunityTable(
+      salesData
+    );
 
-              <div class="progress">
+}
 
-                <div
-                  class="progress-bar"
-                  style="width:${percentage}%"
-                ></div>
 
-              </div>
+/* =========================================================
+   OPPORTUNITIES TABLE
+   ========================================================= */
 
-            </div>
+function renderOpportunitiesTable() {
 
-          `;
-
-        }
+  const rows =
+    [...salesData]
+      .sort(
+        (a, b) =>
+          getProbability(b) -
+          getProbability(a)
       );
 
 
-    container.innerHTML =
-      html;
+  document.getElementById(
+    "opportunitiesTable"
+  ).innerHTML =
+    createOpportunityTable(
+      rows
+    );
+
+}
+
+
+/* =========================================================
+   OPPORTUNITY TABLE
+   ========================================================= */
+
+function createOpportunityTable(rows) {
+
+  if (!rows.length) {
+
+    return emptyMessage(
+      "No opportunities available."
+    );
 
   }
 
 
-  /* =========================================================
-     TOP OPPORTUNITIES
-     ========================================================= */
+  let html = `
 
-  function renderTopOpportunities() {
+    <table>
 
-    const container =
-      document.getElementById(
-        "topOpportunities"
-      );
+      <thead>
 
+        <tr>
 
-    const rows =
-      [...salesData]
-        .sort(
-          (a, b) =>
-            getValue(b) -
-            getValue(a)
-        )
-        .slice(0, 5);
+          <th>Company</th>
+          <th>Sector</th>
+          <th>Value</th>
+          <th>Stage</th>
+          <th>Probability</th>
+          <th>Owner</th>
+          <th>Month</th>
 
+        </tr>
 
-    container.innerHTML =
-      createOpportunityTable(
-        rows
-      );
+      </thead>
 
-  }
+      <tbody>
+
+  `;
 
 
-  /* =========================================================
-     PIPELINE TABLE
-     ========================================================= */
-
-  function renderPipelineTable() {
-
-    document.getElementById(
-      "pipelineTable"
-    ).innerHTML =
-      createOpportunityTable(
-        salesData
-      );
-
-  }
-
-
-  /* =========================================================
-     OPPORTUNITIES TABLE
-     ========================================================= */
-
-  function renderOpportunitiesTable() {
-
-    const rows =
-      [...salesData]
-        .sort(
-          (a, b) =>
-            getProbability(b) -
-            getProbability(a)
-        );
-
-
-    document.getElementById(
-      "opportunitiesTable"
-    ).innerHTML =
-      createOpportunityTable(
-        rows
-      );
-
-  }
-
-
-  /* =========================================================
-     OPPORTUNITY TABLE GENERATOR
-     ========================================================= */
-
-  function createOpportunityTable(
-    rows
-  ) {
-
-    if (!rows.length) {
-
-      return emptyMessage(
-        "No opportunities available."
-      );
-
-    }
-
-
-    let html = `
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>Company</th>
-
-            <th>Sector</th>
-
-            <th>Value</th>
-
-            <th>Stage</th>
-
-            <th>Probability</th>
-
-            <th>Owner</th>
-
-            <th>Month</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-    `;
-
-
-    rows.forEach(row => {
+  rows.forEach(
+    row => {
 
       const probability =
         getProbability(row);
@@ -2931,92 +3028,114 @@
         <tr>
 
           <td>
+
             <div class="company-name">
               ${escapeHTML(
                 getCompany(row)
               )}
             </div>
+
           </td>
 
+
           <td>
+
             <span class="sector">
               ${escapeHTML(
                 getSector(row)
               )}
             </span>
+
           </td>
 
+
           <td>
+
             <span class="amount">
               ${formatCurrency(
                 getValue(row)
               )}
             </span>
+
           </td>
 
+
           <td>
+
             ${stageBadge(
               getStage(row)
             )}
+
           </td>
 
+
           <td>
+
             <strong>
               ${Math.round(
                 probability
               )}%
             </strong>
+
           </td>
 
+
           <td>
+
             ${escapeHTML(
               getOwner(row)
             )}
+
           </td>
 
+
           <td>
+
             ${escapeHTML(
               getMonth(row)
             )}
+
           </td>
 
         </tr>
 
       `;
 
-    });
+    }
+  );
 
 
-    html += `
+  html += `
 
-        </tbody>
+      </tbody>
 
-      </table>
+    </table>
 
-    `;
-
-
-    return html;
-
-  }
+  `;
 
 
-  /* =========================================================
-     CUSTOMERS
-     ========================================================= */
+  return html;
 
-  function renderCustomersTable() {
-
-    const container =
-      document.getElementById(
-        "customersTable"
-      );
+}
 
 
-    const companies = {};
+/* =========================================================
+   CUSTOMERS
+   ========================================================= */
+
+function renderCustomersTable() {
+
+  const container =
+    document.getElementById(
+      "customersTable"
+    );
 
 
-    salesData.forEach(row => {
+  const companies = {};
+
+
+  salesData.forEach(
+    row => {
 
       const company =
         getCompany(row);
@@ -3057,57 +3176,57 @@
         getProbability(row) /
         100;
 
-    });
+    }
+  );
 
 
-    const rows =
-      Object.values(companies)
-        .sort(
-          (a, b) =>
-            b.value -
-            a.value
-        );
+  const rows =
+    Object.values(companies)
+      .sort(
+        (a, b) =>
+          b.value -
+          a.value
+      );
 
 
-    let html = `
+  let html = `
 
-      <table>
+    <table>
 
-        <thead>
+      <thead>
 
-          <tr>
+        <tr>
 
-            <th>Company</th>
+          <th>Company</th>
+          <th>Sector</th>
+          <th>Opportunities</th>
+          <th>Pipeline Value</th>
+          <th>Weighted Value</th>
 
-            <th>Sector</th>
+        </tr>
 
-            <th>Opportunities</th>
+      </thead>
 
-            <th>Pipeline Value</th>
+      <tbody>
 
-            <th>Weighted Value</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-    `;
+  `;
 
 
-    rows.forEach(row => {
+  rows.forEach(
+    row => {
 
       html += `
 
         <tr>
 
           <td>
+
             <div class="company-name">
               ${escapeHTML(
                 row.company
               )}
             </div>
+
           </td>
 
           <td>
@@ -3121,551 +3240,552 @@
           </td>
 
           <td>
+
             <strong>
               ${formatCurrency(
                 row.value
               )}
             </strong>
+
           </td>
 
           <td>
+
             ${formatCurrency(
               row.weighted
             )}
+
           </td>
 
         </tr>
 
       `;
 
-    });
+    }
+  );
 
 
-    html += `
+  html += `
 
-        </tbody>
+      </tbody>
 
-      </table>
+    </table>
 
-    `;
+  `;
 
 
-    container.innerHTML =
-      rows.length
-        ? html
-        : emptyMessage(
-            "No customer data available."
-          );
+  container.innerHTML =
+    rows.length
+      ? html
+      : emptyMessage(
+          "No customer data available."
+        );
+
+}
+
+
+/* =========================================================
+   ANALYTICS
+   ========================================================= */
+
+function renderAnalytics() {
+
+  const total =
+    salesData.reduce(
+      (sum, row) =>
+        sum + getValue(row),
+      0
+    );
+
+
+  const weighted =
+    salesData.reduce(
+      (sum, row) =>
+        sum +
+        getValue(row) *
+        getProbability(row) /
+        100,
+      0
+    );
+
+
+  const high =
+    salesData.filter(
+      row =>
+        getProbability(row) >= 70
+    ).length;
+
+
+  const accounts =
+    new Set(
+      salesData.map(
+        getCompany
+      )
+    ).size;
+
+
+  document.getElementById(
+    "analyticsPipeline"
+  ).textContent =
+    formatCurrency(total);
+
+
+  document.getElementById(
+    "analyticsWeighted"
+  ).textContent =
+    formatCurrency(weighted);
+
+
+  document.getElementById(
+    "analyticsHigh"
+  ).textContent =
+    formatNumber(high);
+
+
+  document.getElementById(
+    "snapshotPipeline"
+  ).textContent =
+    formatCurrency(total);
+
+
+  document.getElementById(
+    "snapshotWeighted"
+  ).textContent =
+    formatCurrency(weighted);
+
+
+  document.getElementById(
+    "snapshotOpportunities"
+  ).textContent =
+    formatNumber(
+      salesData.length
+    );
+
+
+  document.getElementById(
+    "snapshotAccounts"
+  ).textContent =
+    formatNumber(accounts);
+
+}
+
+
+/* =========================================================
+   STAGE BADGE
+   ========================================================= */
+
+function stageBadge(stage) {
+
+  const lower =
+    String(stage)
+      .toLowerCase();
+
+
+  let className =
+    "badge-new";
+
+
+  if (
+    lower.includes("proposal")
+  ) {
+
+    className =
+      "badge-proposal";
+
+  }
+
+  else if (
+    lower.includes("negoti")
+  ) {
+
+    className =
+      "badge-negotiation";
+
+  }
+
+  else if (
+    lower.includes("qualified") ||
+    lower.includes("won")
+  ) {
+
+    className =
+      lower.includes("won")
+        ? "badge-won"
+        : "badge-qualified";
+
+  }
+
+  else if (
+    lower.includes("lost")
+  ) {
+
+    className =
+      "badge-lost";
 
   }
 
 
-  /* =========================================================
-     ANALYTICS
-     ========================================================= */
+  return `
 
-  function renderAnalytics() {
+    <span
+      class="badge ${className}"
+    >
+      ${escapeHTML(stage)}
+    </span>
 
-    const total =
-      salesData.reduce(
-        (sum, row) =>
-          sum + getValue(row),
-        0
-      );
+  `;
 
-
-    const weighted =
-      salesData.reduce(
-        (sum, row) =>
-          sum +
-          getValue(row) *
-          getProbability(row) /
-          100,
-        0
-      );
+}
 
 
-    const high =
-      salesData.filter(
-        row =>
-          getProbability(row) >= 70
-      ).length;
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function showSection(
+  section,
+  button
+) {
+
+  document
+    .querySelectorAll(
+      ".dashboard-section"
+    )
+    .forEach(
+      element => {
+
+        element.style.display =
+          "none";
+
+      }
+    );
 
 
-    const accounts =
-      new Set(
-        salesData.map(
-          getCompany
+  const target =
+    document.getElementById(
+      "section-" +
+      section
+    );
+
+
+  if (target) {
+
+    target.style.display =
+      "block";
+
+  }
+
+
+  document
+    .querySelectorAll(
+      ".nav button"
+    )
+    .forEach(
+      btn =>
+        btn.classList.remove(
+          "active"
         )
-      ).size;
+    );
 
 
-    document.getElementById(
-      "analyticsPipeline"
-    ).textContent =
-      formatCurrency(total);
+  if (button) {
 
-
-    document.getElementById(
-      "analyticsWeighted"
-    ).textContent =
-      formatCurrency(weighted);
-
-
-    document.getElementById(
-      "analyticsHigh"
-    ).textContent =
-      formatNumber(high);
-
-
-    document.getElementById(
-      "snapshotPipeline"
-    ).textContent =
-      formatCurrency(total);
-
-
-    document.getElementById(
-      "snapshotWeighted"
-    ).textContent =
-      formatCurrency(weighted);
-
-
-    document.getElementById(
-      "snapshotOpportunities"
-    ).textContent =
-      formatNumber(
-        salesData.length
-      );
-
-
-    document.getElementById(
-      "snapshotAccounts"
-    ).textContent =
-      formatNumber(
-        accounts
-      );
+    button.classList.add(
+      "active"
+    );
 
   }
 
 
-  /* =========================================================
-     STAGE BADGE
-     ========================================================= */
+  const titles = {
 
-  function stageBadge(stage) {
+    overview:
+      "Executive Overview",
 
-    const lower =
-      String(stage)
-        .toLowerCase();
+    pipeline:
+      "Sales Pipeline",
 
+    opportunities:
+      "Sales Opportunities",
 
-    let className =
-      "badge-new";
+    customers:
+      "Customer Accounts",
 
+    analytics:
+      "Sales Analytics",
 
-    if (
-      lower.includes(
-        "proposal"
-      )
-    ) {
+    targets:
+      "Sales Targets",
 
-      className =
-        "badge-proposal";
+    reports:
+      "Reports",
 
-    }
-    else if (
-      lower.includes(
-        "negoti"
-      )
-    ) {
+    settings:
+      "System Settings"
 
-      className =
-        "badge-negotiation";
-
-    }
-    else if (
-      lower.includes(
-        "qualified"
-      ) ||
-      lower.includes(
-        "won"
-      )
-    ) {
-
-      className =
-        "badge-qualified";
-
-    }
+  };
 
 
-    return `
+  document.getElementById(
+    "pageTitle"
+  ).textContent =
+    titles[section] ||
+    "Executive Overview";
 
-      <span
-        class="badge ${className}"
-      >
-        ${escapeHTML(stage)}
-      </span>
-
-    `;
-
-  }
+}
 
 
-  /* =========================================================
-     NAVIGATION
-     ========================================================= */
+function showSectionById(section) {
 
-  function showSection(
+  const button =
+    [...document.querySelectorAll(
+      ".nav button"
+    )]
+    .find(
+      btn =>
+        btn.getAttribute(
+          "onclick"
+        ) &&
+        btn.getAttribute(
+          "onclick"
+        ).includes(
+          "'" +
+          section +
+          "'"
+        )
+    );
+
+
+  showSection(
     section,
     button
-  ) {
-
-    document
-      .querySelectorAll(
-        ".dashboard-section"
-      )
-      .forEach(
-        element => {
-          element.style.display =
-            "none";
-        }
-      );
+  );
 
 
-    const target =
-      document.getElementById(
-        "section-" +
-        section
-      );
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
 
 
-    if (target) {
-      target.style.display =
-        "block";
-    }
+/* =========================================================
+   STATUS
+   ========================================================= */
 
+function setStatus(
+  type,
+  message
+) {
 
-    document
-      .querySelectorAll(
-        ".nav button"
-      )
-      .forEach(
-        btn =>
-          btn.classList.remove(
-            "active"
-          )
-      );
-
-
-    if (button) {
-      button.classList.add(
-        "active"
-      );
-    }
-
-
-    const titles = {
-
-      overview:
-        "Executive Overview",
-
-      pipeline:
-        "Sales Pipeline",
-
-      opportunities:
-        "Sales Opportunities",
-
-      customers:
-        "Customer Accounts",
-
-      analytics:
-        "Sales Analytics",
-
-      targets:
-        "Sales Targets",
-
-      reports:
-        "Reports",
-
-      settings:
-        "System Settings"
-
-    };
-
-
+  const dot =
     document.getElementById(
-      "pageTitle"
-    ).textContent =
-      titles[section] ||
-      "Executive Overview";
-
-  }
-
-
-  function showSectionById(
-    section
-  ) {
-
-    const button =
-      [...document.querySelectorAll(
-        ".nav button"
-      )]
-      .find(
-        btn =>
-          btn.getAttribute(
-            "onclick"
-          ) &&
-          btn.getAttribute(
-            "onclick"
-          ).includes(
-            "'" +
-            section +
-            "'"
-          )
-      );
-
-
-    showSection(
-      section,
-      button
-    );
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-
-  }
-
-
-  /* =========================================================
-     STATUS
-     ========================================================= */
-
-  function setStatus(
-    type,
-    message
-  ) {
-
-    const dot =
-      document.getElementById(
-        "statusDot"
-      );
-
-
-    const text =
-      document.getElementById(
-        "statusText"
-      );
-
-
-    dot.className =
-      "status-dot";
-
-
-    if (type === "online") {
-
-      dot.classList.add(
-        "online"
-      );
-
-    }
-
-
-    if (type === "error") {
-
-      dot.classList.add(
-        "error"
-      );
-
-    }
-
-
-    text.textContent =
-      message;
-
-  }
-
-
-  /* =========================================================
-     ERROR MESSAGE
-     ========================================================= */
-
-  function showError(
-    message
-  ) {
-
-    const safe =
-      escapeHTML(
-        message ||
-        "Unknown error."
-      );
-
-
-    document.getElementById(
-      "topOpportunities"
-    ).innerHTML = `
-
-      <div class="empty">
-
-        <strong>
-          Unable to load sales data
-        </strong>
-
-        <br><br>
-
-        ${safe}
-
-        <br><br>
-
-        Check your Google Sheets
-        publication and
-        <strong>/api/sheets</strong>
-        configuration.
-
-      </div>
-
-    `;
-
-
-    document.getElementById(
-      "monthlyChart"
-    ).innerHTML =
-      emptyMessage(
-        "Data unavailable."
-      );
-
-
-    document.getElementById(
-      "stageChart"
-    ).innerHTML =
-      emptyMessage(
-        "Data unavailable."
-      );
-
-  }
-
-
-  /* =========================================================
-     EMPTY MESSAGE
-     ========================================================= */
-
-  function emptyMessage(
-    message
-  ) {
-
-    return `
-
-      <div class="empty">
-        ${escapeHTML(message)}
-      </div>
-
-    `;
-
-  }
-
-
-  /* =========================================================
-     SAVE GOOGLE SHEETS URL
-     ========================================================= */
-
-  function saveAndReload() {
-
-    const url =
-      document.getElementById(
-        "sheetsUrl"
-      ).value.trim();
-
-
-    if (!url) {
-
-      alert(
-        "Please enter a Google Sheets CSV URL."
-      );
-
-      return;
-
-    }
-
-
-    localStorage.setItem(
-      "anytimeDieselSheetsUrl",
-      url
+      "statusDot"
     );
 
 
-    loadData();
+  const text =
+    document.getElementById(
+      "statusText"
+    );
+
+
+  dot.className =
+    "status-dot";
+
+
+  if (
+    type === "online"
+  ) {
+
+    dot.classList.add(
+      "online"
+    );
 
   }
 
 
-  /* =========================================================
-     RESET URL
-     ========================================================= */
+  if (
+    type === "error"
+  ) {
 
-  function resetUrl() {
+    dot.classList.add(
+      "error"
+    );
 
-    localStorage.removeItem(
-      "anytimeDieselSheetsUrl"
+  }
+
+
+  text.textContent =
+    message;
+
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+function showError(message) {
+
+  const safe =
+    escapeHTML(
+      message ||
+      "Unknown error."
     );
 
 
+  document.getElementById(
+    "topOpportunities"
+  ).innerHTML = `
+
+    <div class="empty">
+
+      <strong>
+        Unable to load sales data
+      </strong>
+
+      <br><br>
+
+      ${safe}
+
+      <br><br>
+
+      Check your Google Sheets
+      publication and
+      <strong>/api/sheets</strong>
+      configuration.
+
+    </div>
+
+  `;
+
+
+  document.getElementById(
+    "monthlyChart"
+  ).innerHTML =
+    emptyMessage(
+      "Data unavailable."
+    );
+
+
+  document.getElementById(
+    "stageChart"
+  ).innerHTML =
+    emptyMessage(
+      "Data unavailable."
+    );
+
+}
+
+
+/* =========================================================
+   EMPTY MESSAGE
+   ========================================================= */
+
+function emptyMessage(message) {
+
+  return `
+
+    <div class="empty">
+      ${escapeHTML(message)}
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   SAVE URL
+   ========================================================= */
+
+function saveAndReload() {
+
+  const url =
     document.getElementById(
       "sheetsUrl"
-    ).value =
-      GOOGLE_SHEETS_CSV_URL;
+    ).value.trim();
 
 
-    loadData();
+  if (!url) {
+
+    alert(
+      "Please enter a Google Sheets CSV URL."
+    );
+
+    return;
 
   }
 
 
-  /* =========================================================
-     HTML SECURITY
-     ========================================================= */
+  localStorage.setItem(
+    "anytimeDieselSheetsUrl",
+    url
+  );
 
-  function escapeHTML(
-    value
-  ) {
 
-    return String(
-      value ?? ""
+  loadData();
+
+}
+
+
+/* =========================================================
+   RESET URL
+   ========================================================= */
+
+function resetUrl() {
+
+  localStorage.removeItem(
+    "anytimeDieselSheetsUrl"
+  );
+
+
+  document.getElementById(
+    "sheetsUrl"
+  ).value =
+    GOOGLE_SHEETS_CSV_URL;
+
+
+  loadData();
+
+}
+
+
+/* =========================================================
+   HTML SECURITY
+   ========================================================= */
+
+function escapeHTML(value) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
     )
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      )
-      .replace(
-        />/g,
-        "&gt;"
-      )
-      .replace(
-        /"/g,
-        "&quot;"
-      )
-      .replace(
-        /'/g,
-        "&#039;"
-      );
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
-  }
+}
 
 </script>
-
-
-<!-- =========================================================
-     OPTIONAL EXISTING JAVASCRIPT
-     
-     If dashboard.js contains additional functions that you
-     still need, keep this line.
-     ========================================================= -->
-
-<script src="js/dashboard.js"></script>
 
 </body>
 </html>
