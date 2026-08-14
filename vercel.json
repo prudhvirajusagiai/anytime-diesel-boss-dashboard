@@ -1,18 +1,3 @@
 {
-  "version": 2,
-  "functions": {
-    "api/sheets.js": {
-      "runtime": "@vercel/node"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/sheets",
-      "dest": "/api/sheets.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  "version": 2
 }
