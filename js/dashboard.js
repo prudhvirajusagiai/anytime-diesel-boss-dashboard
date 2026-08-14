@@ -1,246 +1,210 @@
 /* ============================================================
    ANYTIME DIESEL — BOSS SALES DASHBOARD
-   dashboard.js
+   File: js/dashboard.js
    Version: 1.0
-   Data source: /api/sheets
-
-   Expected Google Sheet columns:
-   company, sector, value, stage, probability, owner, month
-
-   This file:
-   - Loads data from /api/sheets
-   - Parses CSV safely
-   - Removes empty / malformed rows
-   - Converts numeric fields
-   - Calculates dashboard KPIs
-   - Exposes cleaned data as window.dashboardData
-   - Attempts to update common dashboard elements safely
-   - Does NOT expose private CRM information
    ============================================================ */
 
-(function () {
+(() => {
   "use strict";
 
-  /* ==========================================================
+  /* ============================================================
      CONFIGURATION
-     ========================================================== */
+     ============================================================ */
 
-  const CONFIG = {
-    API_URL: "/api/sheets",
+  const GOOGLE_SHEETS_CSV_URL =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQSg4Wwyn0VlanOxRrWFL8hplD-WL0vxHKLNeU1o1mOoRkwHjNPH4ndE9Y29z4OBg/pub?gid=1079011675&single=true&output=csv";
 
-    // Expected columns from Google Sheets
-    REQUIRED_COLUMNS: [
-      "company",
-      "sector",
-      "value",
-      "stage",
-      "probability",
-      "owner",
-      "month"
-    ],
+  const API_URL = "/api/sheets";
 
-    // Maximum records displayed in opportunity tables
-    MAX_OPPORTUNITIES: 10,
+  const REFRESH_INTERVAL = 5 * 60 * 1000;
 
-    // Cache duration in milliseconds
-    CACHE_DURATION: 60 * 1000
+  const EXPECTED_HEADERS = [
+    "company",
+    "sector",
+    "value",
+    "stage",
+    "probability",
+    "owner",
+    "month"
+  ];
+
+  let salesData = [];
+  let filteredData = [];
+
+  let currentFilters = {
+    search: "",
+    sector: "",
+    stage: "",
+    owner: "",
+    month: ""
   };
 
+  let charts = {};
 
-  /* ==========================================================
-     GLOBAL STATE
-     ========================================================== */
-
-  const state = {
-    rawCsv: "",
-    data: [],
-    filteredData: [],
-    loading: false,
-    error: null,
-    lastUpdated: null
-  };
-
-
-  /* ==========================================================
-     PUBLIC GLOBALS
-     ========================================================== */
-
-  window.dashboardData = [];
-  window.dashboardState = state;
-
-
-  /* ==========================================================
+  /* ============================================================
      DOM HELPERS
-     ========================================================== */
+     ============================================================ */
 
   function $(selector) {
-    try {
-      return document.querySelector(selector);
-    } catch (error) {
-      return null;
-    }
+    return document.querySelector(selector);
   }
 
   function $all(selector) {
-    try {
-      return Array.from(document.querySelectorAll(selector));
-    } catch (error) {
-      return [];
+    return Array.from(document.querySelectorAll(selector));
+  }
+
+  function findElement(...selectors) {
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+
+      if (element) {
+        return element;
+      }
     }
+
+    return null;
   }
 
   function setText(selectors, value) {
-    const list = Array.isArray(selectors) ? selectors : [selectors];
+    const element = findElement(...selectors);
 
-    list.forEach(function (selector) {
-      const element = $(selector);
+    if (element) {
+      element.textContent = value;
+    }
+  }
 
-      if (element) {
-        element.textContent = value;
+  function setHTML(selectors, value) {
+    const element = findElement(...selectors);
+
+    if (element) {
+      element.innerHTML = value;
+    }
+  }
+
+  /* ============================================================
+     INITIALIZATION
+     ============================================================ */
+
+  document.addEventListener("DOMContentLoaded", init);
+
+  async function init() {
+    setupNavigation();
+    setupFilters();
+    setupButtons();
+
+    await loadDashboardData();
+
+    window.setInterval(() => {
+      loadDashboardData();
+    }, REFRESH_INTERVAL);
+  }
+
+  /* ============================================================
+     LOAD DATA
+     ============================================================ */
+
+  async function loadDashboardData() {
+    showLoadingState();
+
+    try {
+      const url =
+        API_URL +
+        "?url=" +
+        encodeURIComponent(GOOGLE_SHEETS_CSV_URL);
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "text/csv,text/plain,*/*"
+        },
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Server returned ${response.status} ${response.statusText}`
+        );
       }
-    });
-  }
 
-  function setHTML(selectors, html) {
-    const list = Array.isArray(selectors) ? selectors : [selectors];
+      const csvText = await response.text();
 
-    list.forEach(function (selector) {
-      const element = $(selector);
-
-      if (element) {
-        element.innerHTML = html;
+      if (!csvText || !csvText.trim()) {
+        throw new Error("Google Sheets returned empty data.");
       }
-    });
-  }
 
+      const parsed = parseCSV(csvText);
 
-  /* ==========================================================
-     SECURITY / HTML ESCAPING
-     ========================================================== */
+      salesData = cleanSalesData(parsed);
 
-  function escapeHTML(value) {
-    return String(value == null ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+      filteredData = [...salesData];
 
+      populateFilters(salesData);
 
-  /* ==========================================================
-     NUMBER HELPERS
-     ========================================================== */
+      renderDashboard();
 
-  function parseNumber(value) {
-    if (value === null || value === undefined) {
-      return 0;
+      hideLoadingState();
+
+      showDataStatus(
+        `Live data loaded • ${salesData.length} opportunities`
+      );
+    } catch (error) {
+      console.error("Dashboard data error:", error);
+
+      hideLoadingState();
+
+      showDataStatus(
+        "Unable to load live Google Sheets data",
+        true
+      );
+
+      renderEmptyState(error.message);
     }
-
-    if (typeof value === "number") {
-      return Number.isFinite(value) ? value : 0;
-    }
-
-    let text = String(value).trim();
-
-    if (!text) {
-      return 0;
-    }
-
-    // Remove currency symbols, commas and spaces
-    text = text
-      .replace(/₹/g, "")
-      .replace(/Rs\.?/gi, "")
-      .replace(/INR/gi, "")
-      .replace(/,/g, "")
-      .replace(/\s/g, "")
-      .replace(/%/g, "");
-
-    const number = Number(text);
-
-    return Number.isFinite(number) ? number : 0;
   }
 
-
-  function formatCurrency(value) {
-    const number = parseNumber(value);
-
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0
-    }).format(number);
-  }
-
-
-  function formatNumber(value) {
-    const number = parseNumber(value);
-
-    return new Intl.NumberFormat("en-IN", {
-      maximumFractionDigits: 0
-    }).format(number);
-  }
-
-
-  function formatPercent(value) {
-    const number = parseNumber(value);
-
-    return number.toFixed(0) + "%";
-  }
-
-
-  /* ==========================================================
+  /* ============================================================
      CSV PARSER
-     ========================================================== */
+     ============================================================ */
 
-  function parseCSV(csv) {
+  function parseCSV(text) {
     const rows = [];
-
-    if (!csv || typeof csv !== "string") {
-      return rows;
-    }
 
     let row = [];
     let field = "";
     let insideQuotes = false;
 
-    for (let i = 0; i < csv.length; i++) {
-      const character = csv[i];
-      const nextCharacter = csv[i + 1];
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
 
-      if (character === '"') {
-        if (insideQuotes && nextCharacter === '"') {
-          field += '"';
-          i++;
-        } else {
-          insideQuotes = !insideQuotes;
-        }
-
+      if (char === '"' && insideQuotes && nextChar === '"') {
+        field += '"';
+        i++;
         continue;
       }
 
-      if (character === "," && !insideQuotes) {
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+        continue;
+      }
+
+      if (char === "," && !insideQuotes) {
         row.push(field);
         field = "";
         continue;
       }
 
       if (
-        (character === "\n" || character === "\r") &&
+        (char === "\n" || char === "\r") &&
         !insideQuotes
       ) {
-        if (character === "\r" && nextCharacter === "\n") {
+        if (char === "\r" && nextChar === "\n") {
           i++;
         }
 
         row.push(field);
         field = "";
 
-        if (
-          row.some(function (value) {
-            return String(value).trim() !== "";
-          })
-        ) {
+        if (row.some(value => String(value).trim() !== "")) {
           rows.push(row);
         }
 
@@ -248,1189 +212,1652 @@
         continue;
       }
 
-      field += character;
+      field += char;
     }
 
-    // Final field
-    row.push(field);
+    if (field !== "" || row.length > 0) {
+      row.push(field);
 
-    if (
-      row.some(function (value) {
-        return String(value).trim() !== "";
-      })
-    ) {
-      rows.push(row);
+      if (row.some(value => String(value).trim() !== "")) {
+        rows.push(row);
+      }
     }
 
-    return rows;
-  }
+    if (!rows.length) {
+      return [];
+    }
 
+    const headers = rows[0].map(header =>
+      String(header)
+        .trim()
+        .toLowerCase()
+    );
 
-  /* ==========================================================
-     CSV NORMALIZATION
-     ========================================================== */
+    return rows.slice(1).map(values => {
+      const record = {};
 
-  function normalizeHeader(value) {
-    return String(value || "")
-      .trim()
-      .toLowerCase()
-      .replace(/^\uFEFF/, "")
-      .replace(/\s+/g, "_");
-  }
+      headers.forEach((header, index) => {
+        record[header] =
+          values[index] !== undefined
+            ? String(values[index]).trim()
+            : "";
+      });
 
-
-  function normalizeRow(headers, row) {
-    const object = {};
-
-    headers.forEach(function (header, index) {
-      object[header] =
-        row[index] !== undefined
-          ? String(row[index]).trim()
-          : "";
+      return record;
     });
-
-    return object;
   }
 
+  /* ============================================================
+     CLEAN DATA
+     ============================================================ */
 
-  /* ==========================================================
-     VALID RECORD CHECK
-     ========================================================== */
+  function cleanSalesData(records) {
+    return records
+      .map(record => normalizeRecord(record))
+      .filter(record => isValidSalesRecord(record));
+  }
+
+  function normalizeRecord(record) {
+    return {
+      company: cleanString(record.company),
+      sector: cleanString(record.sector),
+      value: parseMoney(record.value),
+      valueRaw: cleanString(record.value),
+      stage: cleanString(record.stage),
+      probability: parseProbability(record.probability),
+      owner: cleanString(record.owner),
+      month: cleanString(record.month)
+    };
+  }
 
   function isValidSalesRecord(record) {
     if (!record) {
       return false;
     }
 
-    const company = String(record.company || "").trim();
+    const combined = [
+      record.company,
+      record.sector,
+      record.valueRaw,
+      record.stage,
+      record.probability,
+      record.owner,
+      record.month
+    ]
+      .join(" ")
+      .trim()
+      .toLowerCase();
 
-    // Ignore completely empty rows
-    if (!company) {
+    if (!combined) {
       return false;
     }
 
-    // Ignore public-note / instruction rows
-    const lowerCompany = company.toLowerCase();
-
+    /*
+     * Remove the management/public-use note that exists
+     * in the published Google Sheet.
+     */
     if (
-      lowerCompany.includes("public / boss view") ||
-      lowerCompany.includes("do not add") ||
-      lowerCompany.includes("confidential") ||
-      lowerCompany.includes("private crm")
+      combined.includes("public / boss view only") ||
+      combined.includes("do not add mobile numbers") ||
+      combined.includes("private crm notes")
     ) {
       return false;
     }
 
-    // A legitimate record should have at least company
-    // and one other useful field.
-    const usefulFields = [
+    /*
+     * A valid sales record must at least contain:
+     * company + sector + stage.
+     */
+    if (!record.company) {
+      return false;
+    }
+
+    if (!record.sector) {
+      return false;
+    }
+
+    if (!record.stage) {
+      return false;
+    }
+
+    /*
+     * Reject rows that are clearly CSV formatting artifacts.
+     */
+    if (
+      /^,+$/.test(record.company) ||
+      /^,+$/.test(record.sector)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function cleanString(value) {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    return String(value)
+      .replace(/\uFEFF/g, "")
+      .trim();
+  }
+
+  function parseMoney(value) {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+
+    const cleaned = String(value)
+      .replace(/₹/g, "")
+      .replace(/Rs\.?/gi, "")
+      .replace(/INR/gi, "")
+      .replace(/,/g, "")
+      .replace(/\s/g, "")
+      .trim();
+
+    const number = Number(cleaned);
+
+    return Number.isFinite(number) ? number : 0;
+  }
+
+  function parseProbability(value) {
+    if (value === null || value === undefined || value === "") {
+      return 0;
+    }
+
+    let number = Number(
+      String(value)
+        .replace("%", "")
+        .trim()
+    );
+
+    if (!Number.isFinite(number)) {
+      return 0;
+    }
+
+    if (number > 1 && number <= 100) {
+      return number;
+    }
+
+    if (number >= 0 && number <= 1) {
+      return number * 100;
+    }
+
+    return Math.max(0, Math.min(100, number));
+  }
+
+  /* ============================================================
+     DASHBOARD CALCULATIONS
+     ============================================================ */
+
+  function calculateMetrics(data) {
+    const totalPipeline = data.reduce(
+      (sum, record) => sum + record.value,
+      0
+    );
+
+    const weightedPipeline = data.reduce(
+      (sum, record) =>
+        sum +
+        record.value *
+          (record.probability / 100),
+      0
+    );
+
+    const opportunityCount = data.length;
+
+    const averageDeal =
+      opportunityCount > 0
+        ? totalPipeline / opportunityCount
+        : 0;
+
+    const wonData = data.filter(
+      record =>
+        normalizeStage(record.stage) === "won"
+    );
+
+    const lostData = data.filter(
+      record =>
+        normalizeStage(record.stage) === "lost"
+    );
+
+    const activeData = data.filter(record => {
+      const stage = normalizeStage(record.stage);
+
+      return (
+        stage !== "won" &&
+        stage !== "lost"
+      );
+    });
+
+    const wonValue = wonData.reduce(
+      (sum, record) => sum + record.value,
+      0
+    );
+
+    const activePipeline = activeData.reduce(
+      (sum, record) => sum + record.value,
+      0
+    );
+
+    const weightedActivePipeline =
+      activeData.reduce(
+        (sum, record) =>
+          sum +
+          record.value *
+            (record.probability / 100),
+        0
+      );
+
+    const conversionRate =
+      opportunityCount > 0
+        ? (wonData.length / opportunityCount) * 100
+        : 0;
+
+    return {
+      totalPipeline,
+      weightedPipeline,
+      opportunityCount,
+      averageDeal,
+      wonCount: wonData.length,
+      wonValue,
+      lostCount: lostData.length,
+      activeCount: activeData.length,
+      activePipeline,
+      weightedActivePipeline,
+      conversionRate
+    };
+  }
+
+  /* ============================================================
+     RENDER DASHBOARD
+     ============================================================ */
+
+  function renderDashboard() {
+    const metrics = calculateMetrics(filteredData);
+
+    updateKPI("pipeline", metrics.totalPipeline);
+    updateKPI(
+      "weighted",
+      metrics.weightedPipeline
+    );
+    updateKPI(
+      "opportunities",
+      metrics.opportunityCount
+    );
+    updateKPI(
+      "average",
+      metrics.averageDeal
+    );
+    updateKPI(
+      "won",
+      metrics.wonValue
+    );
+    updateKPI(
+      "active",
+      metrics.activeCount
+    );
+
+    updateCharts(filteredData);
+
+    renderTopOpportunities(filteredData);
+
+    renderManagementView(filteredData);
+
+    renderDataTable(filteredData);
+
+    updateResultCount(filteredData.length);
+  }
+
+  /* ============================================================
+     KPI UPDATES
+     ============================================================ */
+
+  function updateKPI(type, value) {
+    const selectors = {
+      pipeline: [
+        "#totalPipeline",
+        "#pipelineValue",
+        "[data-kpi='pipeline']",
+        "[data-metric='pipeline']"
+      ],
+
+      weighted: [
+        "#weightedPipeline",
+        "#weightedValue",
+        "[data-kpi='weighted']",
+        "[data-metric='weighted']"
+      ],
+
+      opportunities: [
+        "#opportunityCount",
+        "#opportunities",
+        "[data-kpi='opportunities']",
+        "[data-metric='opportunities']"
+      ],
+
+      average: [
+        "#averageDeal",
+        "#averageDealValue",
+        "[data-kpi='average']",
+        "[data-metric='average']"
+      ],
+
+      won: [
+        "#wonValue",
+        "#closedWon",
+        "[data-kpi='won']",
+        "[data-metric='won']"
+      ],
+
+      active: [
+        "#activeCount",
+        "#activeOpportunities",
+        "[data-kpi='active']",
+        "[data-metric='active']"
+      ]
+    };
+
+    const element = findElement(
+      ...selectors[type]
+    );
+
+    if (!element) {
+      return;
+    }
+
+    if (
+      type === "opportunities" ||
+      type === "active"
+    ) {
+      element.textContent =
+        Number(value || 0).toLocaleString("en-IN");
+
+      return;
+    }
+
+    element.textContent = formatCurrency(value);
+  }
+
+  /* ============================================================
+     CURRENCY FORMAT
+     ============================================================ */
+
+  function formatCurrency(value) {
+    const number = Number(value) || 0;
+
+    return (
+      "₹" +
+      number.toLocaleString("en-IN", {
+        maximumFractionDigits: 0
+      })
+    );
+  }
+
+  function formatCompactCurrency(value) {
+    const number = Number(value) || 0;
+
+    if (number >= 10000000) {
+      return (
+        "₹" +
+        (number / 10000000).toFixed(2) +
+        " Cr"
+      );
+    }
+
+    if (number >= 100000) {
+      return (
+        "₹" +
+        (number / 100000).toFixed(2) +
+        " L"
+      );
+    }
+
+    if (number >= 1000) {
+      return (
+        "₹" +
+        (number / 1000).toFixed(1) +
+        " K"
+      );
+    }
+
+    return formatCurrency(number);
+  }
+
+  /* ============================================================
+     FILTERS
+     ============================================================ */
+
+  function setupFilters() {
+    const search = findElement(
+      "#searchInput",
+      "#search",
+      "[data-filter='search']"
+    );
+
+    if (search) {
+      search.addEventListener(
+        "input",
+        event => {
+          currentFilters.search =
+            event.target.value.trim();
+
+          applyFilters();
+        }
+      );
+    }
+
+    bindFilter(
+      [
+        "#sectorFilter",
+        "#sector",
+        "[data-filter='sector']"
+      ],
+      "sector"
+    );
+
+    bindFilter(
+      [
+        "#stageFilter",
+        "#stage",
+        "[data-filter='stage']"
+      ],
+      "stage"
+    );
+
+    bindFilter(
+      [
+        "#ownerFilter",
+        "#owner",
+        "[data-filter='owner']"
+      ],
+      "owner"
+    );
+
+    bindFilter(
+      [
+        "#monthFilter",
+        "#month",
+        "[data-filter='month']"
+      ],
+      "month"
+    );
+  }
+
+  function bindFilter(selectors, filterName) {
+    const element = findElement(...selectors);
+
+    if (!element) {
+      return;
+    }
+
+    element.addEventListener(
+      "change",
+      event => {
+        currentFilters[filterName] =
+          event.target.value;
+
+        applyFilters();
+      }
+    );
+  }
+
+  function populateFilters(data) {
+    populateSelect(
+      [
+        "#sectorFilter",
+        "#sector",
+        "[data-filter='sector']"
+      ],
+      uniqueSorted(
+        data.map(record => record.sector)
+      ),
+      "All Sectors"
+    );
+
+    populateSelect(
+      [
+        "#stageFilter",
+        "#stage",
+        "[data-filter='stage']"
+      ],
+      uniqueSorted(
+        data.map(record => record.stage)
+      ),
+      "All Stages"
+    );
+
+    populateSelect(
+      [
+        "#ownerFilter",
+        "#owner",
+        "[data-filter='owner']"
+      ],
+      uniqueSorted(
+        data.map(record => record.owner)
+      ),
+      "All Owners"
+    );
+
+    populateSelect(
+      [
+        "#monthFilter",
+        "#month",
+        "[data-filter='month']"
+      ],
+      uniqueSorted(
+        data.map(record => record.month)
+      ),
+      "All Months"
+    );
+  }
+
+  function populateSelect(
+    selectors,
+    values,
+    placeholder
+  ) {
+    const element = findElement(...selectors);
+
+    if (!element) {
+      return;
+    }
+
+    const previousValue =
+      element.value;
+
+    element.innerHTML = "";
+
+    const defaultOption =
+      document.createElement("option");
+
+    defaultOption.value = "";
+    defaultOption.textContent =
+      placeholder;
+
+    element.appendChild(defaultOption);
+
+    values
+      .filter(Boolean)
+      .forEach(value => {
+        const option =
+          document.createElement("option");
+
+        option.value = value;
+        option.textContent = value;
+
+        element.appendChild(option);
+      });
+
+    if (
+      values.includes(previousValue)
+    ) {
+      element.value = previousValue;
+    }
+  }
+
+  function uniqueSorted(values) {
+    return [
+      ...new Set(
+        values
+          .map(value => cleanString(value))
+          .filter(Boolean)
+      )
+    ].sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }
+
+  function applyFilters() {
+    filteredData = salesData.filter(
+      record => {
+        const search =
+          currentFilters.search.toLowerCase();
+
+        const searchableText = [
+          record.company,
+          record.sector,
+          record.stage,
+          record.owner,
+          record.month
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        if (
+          search &&
+          !searchableText.includes(search)
+        ) {
+          return false;
+        }
+
+        if (
+          currentFilters.sector &&
+          record.sector !==
+            currentFilters.sector
+        ) {
+          return false;
+        }
+
+        if (
+          currentFilters.stage &&
+          record.stage !==
+            currentFilters.stage
+        ) {
+          return false;
+        }
+
+        if (
+          currentFilters.owner &&
+          record.owner !==
+            currentFilters.owner
+        ) {
+          return false;
+        }
+
+        if (
+          currentFilters.month &&
+          record.month !==
+            currentFilters.month
+        ) {
+          return false;
+        }
+
+        return true;
+      }
+    );
+
+    renderDashboard();
+  }
+
+  /* ============================================================
+     RESET FILTERS
+     ============================================================ */
+
+  function resetFilters() {
+    currentFilters = {
+      search: "",
+      sector: "",
+      stage: "",
+      owner: "",
+      month: ""
+    };
+
+    $all(
+      "input[data-filter], select[data-filter], " +
+      "#searchInput, #search, #sectorFilter, " +
+      "#sector, #stageFilter, #stage, " +
+      "#ownerFilter, #owner, #monthFilter, #month"
+    ).forEach(element => {
+      element.value = "";
+    });
+
+    filteredData = [...salesData];
+
+    renderDashboard();
+  }
+
+  /* ============================================================
+     TOP OPPORTUNITIES
+     ============================================================ */
+
+  function renderTopOpportunities(data) {
+    const container = findElement(
+      "#topOpportunities",
+      "#opportunityList",
+      "#topOpportunityList",
+      "[data-section='top-opportunities']"
+    );
+
+    if (!container) {
+      return;
+    }
+
+    const top = [...data]
+      .sort((a, b) => {
+        const weightedA =
+          a.value *
+          (a.probability / 100);
+
+        const weightedB =
+          b.value *
+          (b.probability / 100);
+
+        return weightedB - weightedA;
+      })
+      .slice(0, 10);
+
+    if (!top.length) {
+      container.innerHTML =
+        emptyMessage(
+          "No opportunities found."
+        );
+
+      return;
+    }
+
+    container.innerHTML = top
+      .map(record => {
+        return `
+          <div class="opportunity-row">
+            <div class="opportunity-company">
+              <strong>${escapeHTML(
+                record.company
+              )}</strong>
+              <span>${escapeHTML(
+                record.sector
+              )}</span>
+            </div>
+
+            <div class="opportunity-value">
+              ${formatCurrency(
+                record.value
+              )}
+            </div>
+
+            <div class="opportunity-stage">
+              <span class="stage-badge ${stageClass(
+                record.stage
+              )}">
+                ${escapeHTML(
+                  record.stage || "—"
+                )}
+              </span>
+            </div>
+
+            <div class="opportunity-probability">
+              ${Math.round(
+                record.probability
+              )}%
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  /* ============================================================
+     MANAGEMENT VIEW
+     ============================================================ */
+
+  function renderManagementView(data) {
+    const container = findElement(
+      "#managementView",
+      "#managementTable",
+      "#managementData",
+      "[data-section='management']"
+    );
+
+    if (!container) {
+      return;
+    }
+
+    if (!data.length) {
+      container.innerHTML =
+        emptyMessage(
+          "No management data available."
+        );
+
+      return;
+    }
+
+    const ownerMap = {};
+
+    data.forEach(record => {
+      const owner =
+        record.owner || "Unassigned";
+
+      if (!ownerMap[owner]) {
+        ownerMap[owner] = {
+          count: 0,
+          value: 0,
+          weighted: 0
+        };
+      }
+
+      ownerMap[owner].count += 1;
+      ownerMap[owner].value +=
+        record.value;
+
+      ownerMap[owner].weighted +=
+        record.value *
+        (record.probability / 100);
+    });
+
+    const owners = Object.entries(
+      ownerMap
+    ).sort(
+      (a, b) =>
+        b[1].value - a[1].value
+    );
+
+    container.innerHTML = owners
+      .map(([owner, stats]) => {
+        return `
+          <div class="management-row">
+            <div>
+              <strong>${escapeHTML(
+                owner
+              )}</strong>
+            </div>
+
+            <div>
+              ${stats.count}
+            </div>
+
+            <div>
+              ${formatCompactCurrency(
+                stats.value
+              )}
+            </div>
+
+            <div>
+              ${formatCompactCurrency(
+                stats.weighted
+              )}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  /* ============================================================
+     DATA TABLE
+     ============================================================ */
+
+  function renderDataTable(data) {
+    const tbody = findElement(
+      "#salesTableBody",
+      "#opportunitiesTableBody",
+      "#dataTableBody",
+      "tbody[data-table='sales']"
+    );
+
+    if (!tbody) {
+      return;
+    }
+
+    if (!data.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7">
+            ${emptyMessage(
+              "No matching opportunities."
+            )}
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    tbody.innerHTML = data
+      .map(record => {
+        return `
+          <tr>
+            <td>
+              <strong>${escapeHTML(
+                record.company
+              )}</strong>
+            </td>
+
+            <td>
+              ${escapeHTML(
+                record.sector
+              )}
+            </td>
+
+            <td>
+              ${formatCurrency(
+                record.value
+              )}
+            </td>
+
+            <td>
+              <span class="stage-badge ${stageClass(
+                record.stage
+              )}">
+                ${escapeHTML(
+                  record.stage
+                )}
+              </span>
+            </td>
+
+            <td>
+              ${Math.round(
+                record.probability
+              )}%
+            </td>
+
+            <td>
+              ${escapeHTML(
+                record.owner || "—"
+              )}
+            </td>
+
+            <td>
+              ${escapeHTML(
+                record.month || "—"
+              )}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+  }
+
+  /* ============================================================
+     CHARTS
+     ============================================================ */
+
+  function updateCharts(data) {
+    /*
+     * Chart.js is optional.
+     * The dashboard continues working without it.
+     */
+
+    if (
+      typeof window.Chart === "undefined"
+    ) {
+      return;
+    }
+
+    renderSectorChart(data);
+    renderStageChart(data);
+    renderMonthlyChart(data);
+  }
+
+  function renderSectorChart(data) {
+    const canvas = findElement(
+      "#sectorChart",
+      "#salesBySectorChart",
+      "canvas[data-chart='sector']"
+    );
+
+    if (!canvas) {
+      return;
+    }
+
+    const map = {};
+
+    data.forEach(record => {
+      const sector =
+        record.sector || "Other";
+
+      map[sector] =
+        (map[sector] || 0) +
+        record.value;
+    });
+
+    const labels = Object.keys(map);
+    const values = Object.values(map);
+
+    destroyChart("sector");
+
+    charts.sector =
+      new Chart(canvas.getContext("2d"), {
+        type: "bar",
+
+        data: {
+          labels,
+
+          datasets: [
+            {
+              label: "Pipeline",
+              data: values,
+              borderWidth: 1
+            }
+          ]
+        },
+
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+
+          plugins: {
+            legend: {
+              display: false
+            },
+
+            tooltip: {
+              callbacks: {
+                label: context =>
+                  formatCurrency(
+                    context.raw
+                  )
+              }
+            }
+          },
+
+          scales: {
+            y: {
+              beginAtZero: true,
+
+              ticks: {
+                callback: value =>
+                  formatCompactCurrency(
+                    value
+                  )
+              }
+            }
+          }
+        }
+      });
+  }
+
+  function renderStageChart(data) {
+    const canvas = findElement(
+      "#stageChart",
+      "#salesByStageChart",
+      "canvas[data-chart='stage']"
+    );
+
+    if (!canvas) {
+      return;
+    }
+
+    const map = {};
+
+    data.forEach(record => {
+      const stage =
+        record.stage || "Unknown";
+
+      map[stage] =
+        (map[stage] || 0) + record.value;
+    });
+
+    destroyChart("stage");
+
+    charts.stage =
+      new Chart(canvas.getContext("2d"), {
+        type: "doughnut",
+
+        data: {
+          labels: Object.keys(map),
+
+          datasets: [
+            {
+              data: Object.values(map)
+            }
+          ]
+        },
+
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: context => {
+                  const label =
+                    context.label || "";
+
+                  return (
+                    label +
+                    ": " +
+                    formatCurrency(
+                      context.raw
+                    )
+                  );
+                }
+              }
+            }
+          }
+        }
+      });
+  }
+
+  function renderMonthlyChart(data) {
+    const canvas = findElement(
+      "#monthlyChart",
+      "#salesByMonthChart",
+      "canvas[data-chart='month']"
+    );
+
+    if (!canvas) {
+      return;
+    }
+
+    const map = {};
+
+    data.forEach(record => {
+      const month =
+        record.month || "Unknown";
+
+      map[month] =
+        (map[month] || 0) +
+        record.value;
+    });
+
+    const labels = Object.keys(map).sort();
+
+    destroyChart("monthly");
+
+    charts.monthly =
+      new Chart(
+        canvas.getContext("2d"),
+        {
+          type: "line",
+
+          data: {
+            labels,
+
+            datasets: [
+              {
+                label: "Pipeline",
+                data: labels.map(
+                  label => map[label]
+                ),
+                tension: 0.25,
+                fill: false
+              }
+            ]
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: context =>
+                    formatCurrency(
+                      context.raw
+                    )
+                }
+              }
+            },
+
+            scales: {
+              y: {
+                beginAtZero: true,
+
+                ticks: {
+                  callback: value =>
+                    formatCompactCurrency(
+                      value
+                    )
+                }
+              }
+            }
+          }
+        }
+      );
+  }
+
+  function destroyChart(name) {
+    if (charts[name]) {
+      try {
+        charts[name].destroy();
+      } catch (error) {
+        console.warn(
+          `Unable to destroy ${name} chart`,
+          error
+        );
+      }
+
+      charts[name] = null;
+    }
+  }
+
+  /* ============================================================
+     NAVIGATION
+     ============================================================ */
+
+  function setupNavigation() {
+    $all(
+      "[data-section-target]"
+    ).forEach(button => {
+      button.addEventListener(
+        "click",
+        () => {
+          const target =
+            button.dataset.sectionTarget;
+
+          if (!target) {
+            return;
+          }
+
+          showSection(target);
+
+          $all(
+            "[data-section-target]"
+          ).forEach(item =>
+            item.classList.remove(
+              "active"
+            )
+          );
+
+          button.classList.add("active");
+        }
+      );
+    });
+
+    $all(
+      "[data-nav-target]"
+    ).forEach(button => {
+      button.addEventListener(
+        "click",
+        () => {
+          const target =
+            button.dataset.navTarget;
+
+          showSection(target);
+        }
+      );
+    });
+  }
+
+  function showSection(id) {
+    const section =
+      document.getElementById(id);
+
+    if (!section) {
+      return;
+    }
+
+    section.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+
+  function setupButtons() {
+    $all(
+      "[data-action='refresh'], #refreshData, #refreshButton"
+    ).forEach(button => {
+      button.addEventListener(
+        "click",
+        async () => {
+          await loadDashboardData();
+        }
+      );
+    });
+
+    $all(
+      "[data-action='reset'], #resetFilters, #clearFilters"
+    ).forEach(button => {
+      button.addEventListener(
+        "click",
+        resetFilters
+      );
+    });
+
+    $all(
+      "[data-action='export'], #exportData, #exportCsv"
+    ).forEach(button => {
+      button.addEventListener(
+        "click",
+        exportCSV
+      );
+    });
+  }
+
+  /* ============================================================
+     EXPORT
+     ============================================================ */
+
+  function exportCSV() {
+    if (!filteredData.length) {
+      alert(
+        "There is no data available to export."
+      );
+
+      return;
+    }
+
+    const headers = [
+      "Company",
+      "Sector",
+      "Value",
+      "Stage",
+      "Probability",
+      "Owner",
+      "Month"
+    ];
+
+    const rows = filteredData.map(record => [
+      record.company,
       record.sector,
       record.value,
       record.stage,
       record.probability,
       record.owner,
       record.month
-    ];
+    ]);
 
-    const usefulCount = usefulFields.filter(function (value) {
-      return String(value || "").trim() !== "";
-    }).length;
+    const csv = [
+      headers,
+      ...rows
+    ]
+      .map(row =>
+        row
+          .map(csvEscape)
+          .join(",")
+      )
+      .join("\r\n");
 
-    return usefulCount >= 1;
+    const blob =
+      new Blob([csv], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+      `Anytime_Diesel_Sales_${formatDateForFile()}.csv`;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
   }
 
+  function csvEscape(value) {
+    const string =
+      value === null ||
+      value === undefined
+        ? ""
+        : String(value);
 
-  /* ==========================================================
-     CLEAN CSV DATA
-     ========================================================== */
-
-  function cleanCSVData(csv) {
-    const rows = parseCSV(csv);
-
-    if (!rows.length) {
-      return [];
-    }
-
-    const headers = rows[0].map(normalizeHeader);
-
-    const records = [];
-
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-
-      // Ignore rows that contain nothing
-      if (
-        !row ||
-        !row.some(function (value) {
-          return String(value || "").trim() !== "";
-        })
-      ) {
-        continue;
-      }
-
-      const record = normalizeRow(headers, row);
-
-      if (!isValidSalesRecord(record)) {
-        continue;
-      }
-
-      record.value = parseNumber(record.value);
-      record.probability = parseNumber(record.probability);
-
-      record.company = String(record.company || "").trim();
-      record.sector = String(record.sector || "").trim();
-      record.stage = String(record.stage || "").trim();
-      record.owner = String(record.owner || "").trim();
-      record.month = String(record.month || "").trim();
-
-      records.push(record);
-    }
-
-    return records;
-  }
-
-
-  /* ==========================================================
-     FETCH DATA
-     ========================================================== */
-
-  async function fetchDashboardData(forceRefresh) {
-    if (state.loading) {
-      return state.data;
-    }
-
-    state.loading = true;
-    state.error = null;
-
-    showLoadingState();
-
-    try {
-      const response = await fetch(
-        CONFIG.API_URL + (forceRefresh ? "?refresh=1" : ""),
-        {
-          method: "GET",
-          headers: {
-            Accept: "text/csv,text/plain,*/*"
-          },
-          cache: "no-store"
-        }
+    if (
+      string.includes(",") ||
+      string.includes('"') ||
+      string.includes("\n")
+    ) {
+      return (
+        '"' +
+        string.replace(
+          /"/g,
+          '""'
+        ) +
+        '"'
       );
-
-      if (!response.ok) {
-        throw new Error(
-          "Google Sheets API returned HTTP " +
-          response.status
-        );
-      }
-
-      const csv = await response.text();
-
-      if (!csv || !csv.trim()) {
-        throw new Error("The Google Sheets response is empty.");
-      }
-
-      state.rawCsv = csv;
-
-      const records = cleanCSVData(csv);
-
-      state.data = records;
-      state.filteredData = records.slice();
-      state.lastUpdated = new Date();
-
-      window.dashboardData = records;
-
-      hideLoadingState();
-
-      updateDashboard(records);
-
-      return records;
-    } catch (error) {
-      console.error(
-        "Anytime Diesel dashboard data error:",
-        error
-      );
-
-      state.error = error;
-
-      showErrorState(error);
-
-      return [];
-    } finally {
-      state.loading = false;
     }
+
+    return string;
   }
 
+  function formatDateForFile() {
+    const date = new Date();
 
-  /* ==========================================================
-     KPI CALCULATIONS
-     ========================================================== */
+    const year =
+      date.getFullYear();
 
-  function calculateKPIs(data) {
-    const records = Array.isArray(data) ? data : [];
+    const month =
+      String(
+        date.getMonth() + 1
+      ).padStart(2, "0");
 
-    const totalPipeline = records.reduce(function (sum, record) {
-      return sum + parseNumber(record.value);
-    }, 0);
+    const day =
+      String(
+        date.getDate()
+      ).padStart(2, "0");
 
-    const weightedPipeline = records.reduce(function (
-      sum,
-      record
-    ) {
-      const value = parseNumber(record.value);
-      const probability = parseNumber(record.probability);
-
-      return sum + value * (probability / 100);
-    }, 0);
-
-    const averageProbability =
-      records.length > 0
-        ? records.reduce(function (sum, record) {
-            return sum + parseNumber(record.probability);
-          }, 0) / records.length
-        : 0;
-
-    const openOpportunities = records.length;
-
-    const wonRecords = records.filter(function (record) {
-      return String(record.stage || "")
-        .toLowerCase()
-        .includes("won");
-    });
-
-    const lostRecords = records.filter(function (record) {
-      return String(record.stage || "")
-        .toLowerCase()
-        .includes("lost");
-    });
-
-    const wonValue = wonRecords.reduce(function (
-      sum,
-      record
-    ) {
-      return sum + parseNumber(record.value);
-    }, 0);
-
-    const lostValue = lostRecords.reduce(function (
-      sum,
-      record
-    ) {
-      return sum + parseNumber(record.value);
-    }, 0);
-
-    return {
-      totalPipeline: totalPipeline,
-      weightedPipeline: weightedPipeline,
-      averageProbability: averageProbability,
-      openOpportunities: openOpportunities,
-      wonCount: wonRecords.length,
-      lostCount: lostRecords.length,
-      wonValue: wonValue,
-      lostValue: lostValue
-    };
+    return `${year}-${month}-${day}`;
   }
 
+  /* ============================================================
+     STATUS
+     ============================================================ */
 
-  /* ==========================================================
-     GROUPING FUNCTIONS
-     ========================================================== */
+  function showLoadingState() {
+    const elements = $all(
+      "[data-loading], #loading, #loadingState"
+    );
 
-  function groupBy(data, field) {
-    const groups = {};
-
-    data.forEach(function (record) {
-      const key =
-        String(record[field] || "Unspecified").trim() ||
-        "Unspecified";
-
-      if (!groups[key]) {
-        groups[key] = {
-          name: key,
-          count: 0,
-          value: 0,
-          weightedValue: 0
-        };
-      }
-
-      groups[key].count += 1;
-
-      groups[key].value += parseNumber(record.value);
-
-      groups[key].weightedValue +=
-        parseNumber(record.value) *
-        (parseNumber(record.probability) / 100);
-    });
-
-    return Object.values(groups).sort(function (a, b) {
-      return b.value - a.value;
+    elements.forEach(element => {
+      element.style.display = "";
     });
   }
 
+  function hideLoadingState() {
+    const elements = $all(
+      "[data-loading], #loading, #loadingState"
+    );
 
-  function getStageSummary(data) {
-    return groupBy(data, "stage");
+    elements.forEach(element => {
+      element.style.display = "none";
+    });
   }
 
+  function showDataStatus(
+    message,
+    isError = false
+  ) {
+    const element = findElement(
+      "#dataStatus",
+      "#statusMessage",
+      "[data-data-status]"
+    );
 
-  function getSectorSummary(data) {
-    return groupBy(data, "sector");
-  }
+    if (!element) {
+      return;
+    }
 
+    element.textContent = message;
 
-  function getOwnerSummary(data) {
-    return groupBy(data, "owner");
-  }
+    element.classList.toggle(
+      "error",
+      isError
+    );
 
-
-  /* ==========================================================
-     TOP OPPORTUNITIES
-     ========================================================== */
-
-  function getTopOpportunities(data) {
-    return data
-      .slice()
-      .sort(function (a, b) {
-        const valueDifference =
-          parseNumber(b.value) - parseNumber(a.value);
-
-        if (valueDifference !== 0) {
-          return valueDifference;
-        }
-
-        return (
-          parseNumber(b.probability) -
-          parseNumber(a.probability)
-        );
-      })
-      .slice(0, CONFIG.MAX_OPPORTUNITIES);
-  }
-
-
-  /* ==========================================================
-     UPDATE DASHBOARD
-     ========================================================== */
-
-  function updateDashboard(data) {
-    const records = Array.isArray(data) ? data : [];
-
-    const kpis = calculateKPIs(records);
-
-    updateKPICards(kpis);
-
-    updateOpportunityTables(records);
-
-    updateSummaryLists(records);
-
-    updateCharts(records);
-
-    updateRecordCount(records);
-
-    updateLastUpdated();
-
-    document.dispatchEvent(
-      new CustomEvent("anytimeDieselDataLoaded", {
-        detail: {
-          data: records,
-          kpis: kpis
-        }
-      })
+    element.classList.toggle(
+      "success",
+      !isError
     );
   }
 
+  function updateResultCount(count) {
+    $all(
+      "#resultCount, #recordCount, [data-result-count]"
+    ).forEach(element => {
+      element.textContent =
+        Number(count || 0).toLocaleString(
+          "en-IN"
+        );
+    });
+  }
 
-  /* ==========================================================
-     KPI CARD UPDATE
-     ========================================================== */
+  /* ============================================================
+     EMPTY / ERROR STATES
+     ============================================================ */
 
-  function updateKPICards(kpis) {
-    const currencyValues = [
-      kpis.totalPipeline,
-      kpis.weightedPipeline,
-      kpis.wonValue,
-      kpis.lostValue
-    ];
+  function renderEmptyState(message) {
+    const containers = [
+      findElement(
+        "#topOpportunities",
+        "#opportunityList",
+        "#topOpportunityList"
+      ),
 
-    // Common IDs
+      findElement(
+        "#salesTableBody",
+        "#opportunitiesTableBody",
+        "#dataTableBody"
+      )
+    ].filter(Boolean);
+
+    containers.forEach(container => {
+      container.innerHTML =
+        emptyMessage(
+          message ||
+            "No dashboard data available."
+        );
+    });
+
     setText(
       [
         "#totalPipeline",
-        "#total-pipeline",
         "#pipelineValue",
-        "#pipeline-value",
-        "[data-kpi='total-pipeline']"
+        "[data-kpi='pipeline']"
       ],
-      formatCurrency(currencyValues[0])
+      "₹0"
     );
 
     setText(
       [
         "#weightedPipeline",
-        "#weighted-pipeline",
         "#weightedValue",
-        "#weighted-value",
-        "[data-kpi='weighted-pipeline']"
+        "[data-kpi='weighted']"
       ],
-      formatCurrency(currencyValues[1])
+      "₹0"
     );
 
     setText(
       [
-        "#openOpportunities",
-        "#open-opportunities",
         "#opportunityCount",
-        "#opportunity-count",
-        "[data-kpi='open-opportunities']"
+        "#opportunities",
+        "[data-kpi='opportunities']"
       ],
-      formatNumber(kpis.openOpportunities)
-    );
-
-    setText(
-      [
-        "#averageProbability",
-        "#average-probability",
-        "#avgProbability",
-        "#avg-probability",
-        "[data-kpi='average-probability']"
-      ],
-      formatPercent(kpis.averageProbability)
-    );
-
-    setText(
-      [
-        "#wonValue",
-        "#won-value",
-        "[data-kpi='won-value']"
-      ],
-      formatCurrency(kpis.wonValue)
-    );
-
-    setText(
-      [
-        "#lostValue",
-        "#lost-value",
-        "[data-kpi='lost-value']"
-      ],
-      formatCurrency(kpis.lostValue)
-    );
-
-    setText(
-      [
-        "#wonCount",
-        "#won-count",
-        "[data-kpi='won-count']"
-      ],
-      formatNumber(kpis.wonCount)
-    );
-
-    setText(
-      [
-        "#lostCount",
-        "#lost-count",
-        "[data-kpi='lost-count']"
-      ],
-      formatNumber(kpis.lostCount)
+      "0"
     );
   }
 
+  function emptyMessage(message) {
+    return `
+      <div class="empty-state">
+        <div class="empty-state-title">
+          No data
+        </div>
 
-  /* ==========================================================
-     OPPORTUNITY TABLES
-     ========================================================== */
-
-  function updateOpportunityTables(data) {
-    const opportunities = getTopOpportunities(data);
-
-    const tableSelectors = [
-      "#topOpportunities",
-      "#top-opportunities",
-      "#opportunitiesTableBody",
-      "#opportunities-table-body",
-      "[data-table='top-opportunities']"
-    ];
-
-    const html = opportunities
-      .map(function (record) {
-        return `
-          <tr>
-            <td>${escapeHTML(record.company)}</td>
-            <td>${escapeHTML(record.sector)}</td>
-            <td>${formatCurrency(record.value)}</td>
-            <td>${escapeHTML(record.stage)}</td>
-            <td>${formatPercent(record.probability)}</td>
-            <td>${escapeHTML(record.owner)}</td>
-            <td>${escapeHTML(record.month)}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    tableSelectors.forEach(function (selector) {
-      const element = $(selector);
-
-      if (!element) {
-        return;
-      }
-
-      if (element.tagName === "TBODY") {
-        element.innerHTML = html;
-        return;
-      }
-
-      const tbody = element.querySelector("tbody");
-
-      if (tbody) {
-        tbody.innerHTML = html;
-      } else {
-        element.innerHTML = html;
-      }
-    });
+        <div class="empty-state-message">
+          ${escapeHTML(message)}
+        </div>
+      </div>
+    `;
   }
 
+  /* ============================================================
+     STAGE HELPERS
+     ============================================================ */
 
-  /* ==========================================================
-     SUMMARY LISTS
-     ========================================================== */
-
-  function updateSummaryLists(data) {
-    const stageSummary = getStageSummary(data);
-    const sectorSummary = getSectorSummary(data);
-    const ownerSummary = getOwnerSummary(data);
-
-    renderSummaryList(
-      [
-        "#pipelineByStage",
-        "#pipeline-by-stage",
-        "[data-summary='stage']"
-      ],
-      stageSummary
-    );
-
-    renderSummaryList(
-      [
-        "#pipelineBySector",
-        "#pipeline-by-sector",
-        "[data-summary='sector']"
-      ],
-      sectorSummary
-    );
-
-    renderSummaryList(
-      [
-        "#pipelineByOwner",
-        "#pipeline-by-owner",
-        "[data-summary='owner']"
-      ],
-      ownerSummary
-    );
+  function normalizeStage(stage) {
+    return cleanString(stage)
+      .toLowerCase()
+      .replace(/[_-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
-
-  function renderSummaryList(selectors, groups) {
-    const html = groups
-      .map(function (group) {
-        return `
-          <div class="summary-row">
-            <div class="summary-row-main">
-              <span class="summary-name">
-                ${escapeHTML(group.name)}
-              </span>
-
-              <span class="summary-count">
-                ${formatNumber(group.count)}
-              </span>
-            </div>
-
-            <div class="summary-row-value">
-              ${formatCurrency(group.value)}
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-
-    selectors.forEach(function (selector) {
-      const element = $(selector);
-
-      if (element) {
-        element.innerHTML =
-          html ||
-          `<div class="empty-state">No data available</div>`;
-      }
-    });
-  }
-
-
-  /* ==========================================================
-     CHART SUPPORT
-     ========================================================== */
-
-  function updateCharts(data) {
-    const stageSummary = getStageSummary(data);
-    const sectorSummary = getSectorSummary(data);
-
-    /*
-     * If Chart.js is already included in index.html,
-     * update charts when matching canvas IDs exist.
-     */
+  function stageClass(stage) {
+    const normalized =
+      normalizeStage(stage);
 
     if (
-      window.Chart &&
-      $("#pipelineByStageChart")
+      normalized.includes("won") ||
+      normalized.includes("closed")
     ) {
-      createOrUpdateChart(
-        "pipelineByStageChart",
-        "bar",
-        stageSummary.map(function (item) {
-          return item.name;
-        }),
-        stageSummary.map(function (item) {
-          return item.value;
-        })
-      );
+      return "stage-won";
     }
 
     if (
-      window.Chart &&
-      $("#pipelineBySectorChart")
+      normalized.includes("lost") ||
+      normalized.includes("closed lost")
     ) {
-      createOrUpdateChart(
-        "pipelineBySectorChart",
-        "doughnut",
-        sectorSummary.map(function (item) {
-          return item.name;
-        }),
-        sectorSummary.map(function (item) {
-          return item.value;
-        })
-      );
-    }
-  }
-
-
-  const chartInstances = {};
-
-
-  function createOrUpdateChart(
-    canvasId,
-    type,
-    labels,
-    values
-  ) {
-    const canvas = document.getElementById(canvasId);
-
-    if (!canvas || !window.Chart) {
-      return;
+      return "stage-lost";
     }
 
-    if (chartInstances[canvasId]) {
-      chartInstances[canvasId].destroy();
+    if (
+      normalized.includes("negotiation")
+    ) {
+      return "stage-negotiation";
     }
 
-    chartInstances[canvasId] = new Chart(canvas, {
-      type: type,
-
-      data: {
-        labels: labels,
-
-        datasets: [
-          {
-            label: "Pipeline Value",
-            data: values,
-
-            borderWidth: 1
-          }
-        ]
-      },
-
-      options: {
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-        plugins: {
-          legend: {
-            display: type === "doughnut"
-          },
-
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                return (
-                  " " +
-                  formatCurrency(context.raw)
-                );
-              }
-            }
-          }
-        },
-
-        scales:
-          type === "doughnut"
-            ? {}
-            : {
-                y: {
-                  beginAtZero: true,
-
-                  ticks: {
-                    callback: function (value) {
-                      return formatCurrency(value);
-                    }
-                  }
-                }
-              }
-      }
-    });
-  }
-
-
-  /* ==========================================================
-     RECORD COUNT
-     ========================================================== */
-
-  function updateRecordCount(data) {
-    const count = Array.isArray(data)
-      ? data.length
-      : 0;
-
-    setText(
-      [
-        "#recordCount",
-        "#record-count",
-        "#dataCount",
-        "#data-count",
-        "[data-record-count]"
-      ],
-      formatNumber(count)
-    );
-  }
-
-
-  /* ==========================================================
-     LAST UPDATED
-     ========================================================== */
-
-  function updateLastUpdated() {
-    if (!state.lastUpdated) {
-      return;
+    if (
+      normalized.includes("proposal")
+    ) {
+      return "stage-proposal";
     }
 
-    const time = state.lastUpdated.toLocaleString(
-      "en-IN",
-      {
-        dateStyle: "medium",
-        timeStyle: "short"
-      }
-    );
-
-    setText(
-      [
-        "#lastUpdated",
-        "#last-updated",
-        "#dataLastUpdated",
-        "#data-last-updated",
-        "[data-last-updated]"
-      ],
-      "Updated " + time
-    );
-  }
-
-
-  /* ==========================================================
-     LOADING STATE
-     ========================================================== */
-
-  function showLoadingState() {
-    setText(
-      [
-        "#dataStatus",
-        "#data-status",
-        "[data-status]"
-      ],
-      "Loading sales data..."
-    );
-
-    $all(
-      "[data-loading], .data-loading"
-    ).forEach(function (element) {
-      element.style.display = "";
-    });
-  }
-
-
-  function hideLoadingState() {
-    $all(
-      "[data-loading], .data-loading"
-    ).forEach(function (element) {
-      element.style.display = "none";
-    });
-
-    setText(
-      [
-        "#dataStatus",
-        "#data-status",
-        "[data-status]"
-      ],
-      "Live"
-    );
-  }
-
-
-  /* ==========================================================
-     ERROR STATE
-     ========================================================== */
-
-  function showErrorState(error) {
-    console.error(error);
-
-    const message =
-      error && error.message
-        ? error.message
-        : "Unable to load sales data.";
-
-    setText(
-      [
-        "#dataStatus",
-        "#data-status",
-        "[data-status]"
-      ],
-      "Data unavailable"
-    );
-
-    const errorElements = [
-      "#dataError",
-      "#data-error",
-      "[data-error]"
-    ];
-
-    errorElements.forEach(function (selector) {
-      const element = $(selector);
-
-      if (!element) {
-        return;
-      }
-
-      element.textContent =
-        "Unable to load Google Sheets data: " +
-        message;
-
-      element.style.display = "";
-    });
-  }
-
-
-  /* ==========================================================
-     SEARCH
-     ========================================================== */
-
-  function searchData(searchTerm) {
-    const term = String(searchTerm || "")
-      .trim()
-      .toLowerCase();
-
-    if (!term) {
-      state.filteredData = state.data.slice();
-
-      updateDashboard(state.filteredData);
-
-      return state.filteredData;
+    if (
+      normalized.includes("qualified")
+    ) {
+      return "stage-qualified";
     }
 
-    state.filteredData = state.data.filter(
-      function (record) {
-        return Object.values(record).some(
-          function (value) {
-            return String(value || "")
-              .toLowerCase()
-              .includes(term);
-          }
-        );
-      }
-    );
-
-    updateDashboard(state.filteredData);
-
-    return state.filteredData;
-  }
-
-
-  /* ==========================================================
-     FILTER BY STAGE
-     ========================================================== */
-
-  function filterByStage(stage) {
-    const value = String(stage || "")
-      .trim()
-      .toLowerCase();
-
-    if (!value || value === "all") {
-      state.filteredData = state.data.slice();
-    } else {
-      state.filteredData = state.data.filter(
-        function (record) {
-          return String(record.stage || "")
-            .trim()
-            .toLowerCase() === value;
-        }
-      );
+    if (
+      normalized.includes("lead")
+    ) {
+      return "stage-lead";
     }
 
-    updateDashboard(state.filteredData);
-
-    return state.filteredData;
+    return "stage-default";
   }
 
+  /* ============================================================
+     SECURITY
+     ============================================================ */
 
-  /* ==========================================================
-     FILTER BY SECTOR
-     ========================================================== */
-
-  function filterBySector(sector) {
-    const value = String(sector || "")
-      .trim()
-      .toLowerCase();
-
-    if (!value || value === "all") {
-      state.filteredData = state.data.slice();
-    } else {
-      state.filteredData = state.data.filter(
-        function (record) {
-          return String(record.sector || "")
-            .trim()
-            .toLowerCase() === value;
-        }
-      );
+  function escapeHTML(value) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
+      return "";
     }
 
-    updateDashboard(state.filteredData);
-
-    return state.filteredData;
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
-
-  /* ==========================================================
-     RESET FILTERS
-     ========================================================== */
-
-  function resetFilters() {
-    state.filteredData = state.data.slice();
-
-    updateDashboard(state.filteredData);
-
-    $all(
-      "input[data-dashboard-search], #dashboardSearch, #search"
-    ).forEach(function (input) {
-      input.value = "";
-    });
-
-    $all(
-      "select[data-dashboard-filter]"
-    ).forEach(function (select) {
-      select.value = "all";
-    });
-
-    return state.filteredData;
-  }
-
-
-  /* ==========================================================
-     EVENT LISTENERS
-     ========================================================== */
-
-  function setupEventListeners() {
-    /*
-     * Search inputs
-     */
-
-    $all(
-      [
-        "#dashboardSearch",
-        "#dashboard-search",
-        "#search",
-        "[data-dashboard-search]"
-      ].join(",")
-    ).forEach(function (input) {
-      input.addEventListener(
-        "input",
-        function (event) {
-          searchData(event.target.value);
-        }
-      );
-    });
-
-
-    /*
-     * Stage filters
-     */
-
-    $all(
-      [
-        "#stageFilter",
-        "#stage-filter",
-        "[data-filter-stage]"
-      ].join(",")
-    ).forEach(function (element) {
-      element.addEventListener(
-        "change",
-        function (event) {
-          filterByStage(event.target.value);
-        }
-      );
-    });
-
-
-    /*
-     * Sector filters
-     */
-
-    $all(
-      [
-        "#sectorFilter",
-        "#sector-filter",
-        "[data-filter-sector]"
-      ].join(",")
-    ).forEach(function (element) {
-      element.addEventListener(
-        "change",
-        function (event) {
-          filterBySector(event.target.value);
-        }
-      );
-    });
-
-
-    /*
-     * Refresh buttons
-     */
-
-    $all(
-      [
-        "#refreshData",
-        "#refresh-data",
-        "[data-refresh-data]"
-      ].join(",")
-    ).forEach(function (button) {
-      button.addEventListener(
-        "click",
-        async function () {
-          await fetchDashboardData(true);
-        }
-      );
-    });
-
-
-    /*
-     * Reset filters
-     */
-
-    $all(
-      [
-        "#resetFilters",
-        "#reset-filters",
-        "[data-reset-filters]"
-      ].join(",")
-    ).forEach(function (button) {
-      button.addEventListener(
-        "click",
-        function () {
-          resetFilters();
-        }
-      );
-    });
-  }
-
-
-  /* ==========================================================
-     AUTO-REFRESH
-     ========================================================== */
-
-  function startAutoRefresh() {
-    setInterval(
-      function () {
-        fetchDashboardData(true);
-      },
-      5 * 60 * 1000
-    );
-  }
-
-
-  /* ==========================================================
-     INITIALIZATION
-     ========================================================== */
-
-  async function initializeDashboard() {
-    console.log(
-      "Anytime Diesel BOSS Dashboard initializing..."
-    );
-
-    setupEventListeners();
-
-    await fetchDashboardData(false);
-
-    startAutoRefresh();
-
-    console.log(
-      "Anytime Diesel BOSS Dashboard initialized."
-    );
-  }
-
-
-  /* ==========================================================
-     PUBLIC API
-     ========================================================== */
+  /* ============================================================
+     GLOBAL DASHBOARD API
+     ============================================================ */
 
   window.AnytimeDieselDashboard = {
-    load: fetchDashboardData,
+    refresh: loadDashboardData,
 
-    refresh: function () {
-      return fetchDashboardData(true);
+    getData: () => [...salesData],
+
+    getFilteredData: () => [
+      ...filteredData
+    ],
+
+    resetFilters,
+
+    exportCSV,
+
+    applyFilters,
+
+    setFilter(name, value) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          currentFilters,
+          name
+        )
+      ) {
+        currentFilters[name] = value;
+        applyFilters();
+      }
     },
 
-    search: searchData,
-
-    filterStage: filterByStage,
-
-    filterSector: filterBySector,
-
-    resetFilters: resetFilters,
-
-    getData: function () {
-      return state.data.slice();
-    },
-
-    getFilteredData: function () {
-      return state.filteredData.slice();
-    },
-
-    getKPIs: function () {
-      return calculateKPIs(state.data);
-    },
-
-    getStageSummary: function () {
-      return getStageSummary(state.data);
-    },
-
-    getSectorSummary: function () {
-      return getSectorSummary(state.data);
-    },
-
-    getOwnerSummary: function () {
-      return getOwnerSummary(state.data);
+    getMetrics() {
+      return calculateMetrics(
+        filteredData
+      );
     }
   };
-
-
-  /* ==========================================================
-     START
-     ========================================================== */
-
-  if (
-    document.readyState === "loading"
-  ) {
-    document.addEventListener(
-      "DOMContentLoaded",
-      initializeDashboard
-    );
-  } else {
-    initializeDashboard();
-  }
 
 })();
